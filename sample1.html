@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>시그넘 KSS - 공공사인 업무 자동화 플랫폼 MVP</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --text-main: #1e293b;
+            --accent-color: #059669;
+        }
+
+        body {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            padding: 10px 0 30px 0;
+            border-bottom: 2px solid var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        header h1 { margin: 0; color: var(--primary-color); font-size: 1.5rem; }
+        header p { margin: 5px 0 0 0; color: #64748b; }
+
+        /* 입력 섹션 */
+        .input-panel {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; font-weight: 600; margin-bottom: 5px; font-size: 0.9rem; }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        /* 결과 섹션 */
+        .result-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 6px;
+            font-weight: 500;
+            background: #f1f5f9;
+        }
+
+        .tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .content-card {
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            min-height: 400px;
+        }
+
+        /* 요약 바 */
+        .summary-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .summary-item small { color: #64748b; display: block; margin-bottom: 5px; }
+        .summary-item strong { font-size: 1.2rem; color: var(--text-main); }
+
+        /* 제안서 스타일 */
+        .source-tag {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            cursor: help;
+        }
+
+        .rule-pass { color: var(--accent-color); font-weight: bold; }
+        .rule-fail { color: #ef4444; font-weight: bold; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table th, table td { 
+            padding: 12px; 
+            text-align: left; 
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Signum KSS: 공공사인 DX 플랫폼 MVP</h1>
+    <p>AI 기반 제안서 생성 및 표준 산식 연동 내역 자동화 시스템</p>
+</header>
+
+<div class="container">
+    <!-- 왼쪽: 데이터 입력 -->
+    <div class="input-panel">
+        <h3>현장 데이터 입력</h3>
+        <div class="input-group">
+            <label>지자체 선택</label>
+            <select id="region">
+                <option value="daegu">대구광역시 중구</option>
+                <option value="gyeongbuk">경상북도 영천시</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>사인 타입</label>
+            <select id="signType">
+                <option value="wall" data-price="250000">벽면 이용 간판</option>
+                <option value="stand" data-price="350000">지주 이용 간판</option>
+                <option value="led" data-price="500000">LED 채널 사인</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>재질</label>
+            <select id="material">
+                <option value="wood">목재 (낙엽송)</option>
+                <option value="alu">알루미늄 프레임</option>
+                <option value="sus">스테인리스 (SUS304)</option>
+            </select>
+        </div>
+        <div class="input-group">
+            <label>가로 크기 (mm)</label>
+            <input type="number" id="width" value="3000" oninput="updateAll()">
+        </div>
+        <div class="input-group">
+            <label>세로 크기 (mm)</label>
+            <input type="number" id="height" value="1200" oninput="updateAll()">
+        </div>
+        <div class="input-group">
+            <label>수량 (개)</label>
+            <input type="number" id="count" value="1" oninput="updateAll()">
+        </div>
+        <hr>
+        <p style="font-size: 0.8rem; color: #64748b;">* 입력 시 실시간으로 표준 산식 엔진이 작동하여 내역을 산출합니다.</p>
+    </div>
+
+    <!-- 오른쪽: 결과 출력 -->
+    <div class="result-panel">
+        <div class="summary-bar">
+            <div class="summary-item">
+                <small>예상 총액 (VAT 별도)</small>
+                <strong id="totalPrice">₩ 0</strong>
+            </div>
+            <div class="summary-item">
+                <small>산출 면적</small>
+                <strong id="calcArea">0.00 m²</strong>
+            </div>
+            <div class="summary-item">
+                <small>규정 준수 여부</small>
+                <strong id="ruleStatus" class="rule-pass">검토 중</strong>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('estimate')">견적서 (BoQ)</div>
+            <div class="tab" onclick="switchTab('proposal')">RAG 제안서 초안</div>
+            <div class="tab" onclick="switchTab('rules')">규정 점검 리포트</div>
+        </div>
+
+        <div id="estimateContent" class="content-card">
+            <h4>표준 산식 기반 상세 내역</h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th>품목명</th>
+                        <th>규격/사양</th>
+                        <th>단위</th>
+                        <th>수량</th>
+                        <th>단가</th>
+                        <th>금액</th>
+                    </tr>
+                </thead>
+                <tbody id="estimateTable">
+                    <!-- JS로 채워짐 -->
+                </tbody>
+            </table>
+            <p style="font-size: 0.8rem; color: #64748b; margin-top: 20px;">[Audit Log] 적용 산식: (가로*세로)*단가*수량 | 단가기준: 2026 표준 노임 단가 적용</p>
+        </div>
+
+        <div id="proposalContent" class="content-card" style="display:none;">
+            <h4>AI 생성 제안서 초안 (근거 기반)</h4>
+            <div id="ragText" style="line-height: 1.8;">
+                <!-- JS로 채워짐 -->
+            </div>
+        </div>
+
+        <div id="rulesContent" class="content-card" style="display:none;">
+            <h4>지자체 가이드라인 자동 점검 결과</h4>
+            <ul id="ruleList" style="line-height: 2;">
+                <!-- JS로 채워짐 -->
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateAll() {
+        const width = document.getElementById('width').value / 1000;
+        const height = document.getElementById('height').value / 1000;
+        const count = document.getElementById('count').value;
+        const signSelect = document.getElementById('signType');
+        const unitPrice = signSelect.options[signSelect.selectedIndex].dataset.price;
+        const area = width * height;
+        const total = area * unitPrice * count;
+
+        // 요약 업데이트
+        document.getElementById('calcArea').innerText = area.toFixed(2) + " m²";
+        document.getElementById('totalPrice').innerText = "₩ " + Math.floor(total).toLocaleString();
+
+        // 규정 체크 (예시: 면적 5㎡ 초과 시 경고)
+        const ruleStatus = document.getElementById('ruleStatus');
+        if (area > 5) {
+            ruleStatus.innerText = "주의 (면적 초과)";
+            ruleStatus.className = "rule-fail";
+        } else {
+            ruleStatus.innerText = "적정";
+            ruleStatus.className = "rule-pass";
+        }
+
+        updateEstimate(area, unitPrice, count);
+        updateProposal();
+        updateRuleList(area);
+    }
+
+    function updateEstimate(area, unitPrice, count) {
+        const table = document.getElementById('estimateTable');
+        const signName = document.getElementById('signType').options[document.getElementById('signType').selectedIndex].text;
+        const materialName = document.getElementById('material').options[document.getElementById('material').selectedIndex].text;
+        
+        table.innerHTML = `
+            <tr>
+                <td>${signName} 제작</td>
+                <td>${materialName} 외</td>
+                <td>m²</td>
+                <td>${area.toFixed(2)}</td>
+                <td>${Number(unitPrice).toLocaleString()}</td>
+                <td>${Math.floor(area * unitPrice).toLocaleString()}</td>
+            </tr>
+            <tr>
+                <td>설치 및 시공비</td>
+                <td>일반 크레인 작업</td>
+                <td>식</td>
+                <td>${count}</td>
+                <td>150,000</td>
+                <td>${(count * 150000).toLocaleString()}</td>
+            </tr>
+        `;
+    }
+
+    function updateProposal() {
+        const regionName = document.getElementById('region').options[document.getElementById('region').selectedIndex].text;
+        const ragText = document.getElementById('ragText');
+        ragText.innerHTML = `
+            <p>본 프로젝트는 <strong>${regionName}</strong>의 경관 가이드라인을 준수하여 설계되었습니다. 
+            <span class="source-tag" title="대구광역시 공공디자인 가이드라인 p.24">Source: Guide_A_p.24</span></p>
+            
+            <p>선택된 재질은 내구성이 강한 소재로, 특히 도시 미관의 통일성을 위해 무채색 계열의 배경색을 권장합니다. 
+            <span class="source-tag" title="옥외광고물법 시행령 제12조">Source: Law_Ref_12</span></p>
+            
+            <p>AI 엔진 분석 결과, 보행자의 시인성을 확보하면서도 야간 빛 공해를 최소화하는 LED 모듈 배치를 제안합니다. 
+            <span class="source-tag" title="시그넘KSS 지식베이스 - 유사 사례 분석">Source: Internal_DB_2025</span></p>
+        `;
+    }
+
+    function updateRuleList(area) {
+        const list = document.getElementById('ruleList');
+        const isAreaOk = area <= 5;
+        list.innerHTML = `
+            <li>[규정 01] 지자체 통합 디자인 조례 준수 여부: <span class="rule-pass">PASS</span></li>
+            <li>[규정 02] 간판 면적 총합 제한 (5㎡ 미만): ${isAreaOk ? '<span class="rule-pass">PASS</span>' : '<span class="rule-fail">FAIL (관리 대상)</span>'}</li>
+            <li>[규정 03] 조명 밝기(휘도) 기준 준수: <span class="rule-pass">PASS</span></li>
+            <li>[규정 04] 낙하 방지 안전 설계 구조 적용: <span class="rule-pass">PASS</span></li>
+        `;
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelector(`.tab[onclick="switchTab('${tabName}')"]`).classList.add('active');
+        
+        document.getElementById('estimateContent').style.display = 'none';
+        document.getElementById('proposalContent').style.display = 'none';
+        document.getElementById('rulesContent').style.display = 'none';
+        
+        document.getElementById(tabName + 'Content').style.display = 'block';
+    }
+
+    // 초기 실행
+    updateAll();
+</script>
+
+</body>
+</html>

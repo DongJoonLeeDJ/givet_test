@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시그넘 KSS — AI 사인물 자동화 플랫폼 데모</title>
+<style>
+  /* ===== RESET & BASE ===== */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-dark:    #0a0e1a;
+    --bg-card:    #111827;
+    --bg-input:   #1a2235;
+    --border:     #1e3a5f;
+    --accent:     #00c8ff;
+    --accent2:    #4f8ef7;
+    --accent3:    #7c3aed;
+    --green:      #10b981;
+    --yellow:     #f59e0b;
+    --red:        #ef4444;
+    --text:       #e2e8f0;
+    --text-muted: #64748b;
+    --text-dim:   #94a3b8;
+    --font:       'Pretendard', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font);
+    background: var(--bg-dark);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ===== ANIMATED BG ===== */
+  .bg-grid {
+    position: fixed; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(0,200,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,255,.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+  }
+  .bg-glow {
+    position: fixed; z-index: 0; pointer-events: none;
+    border-radius: 50%; filter: blur(120px); opacity: .15;
+  }
+  .bg-glow-1 { width: 600px; height: 600px; top: -200px; left: -200px; background: #00c8ff; }
+  .bg-glow-2 { width: 500px; height: 500px; bottom: -200px; right: -100px; background: #7c3aed; }
+
+  /* ===== LAYOUT ===== */
+  .wrapper { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+  /* ===== HEADER ===== */
+  header {
+    padding: 40px 0 32px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  }
+  .logo-wrap { display: flex; align-items: center; gap: 14px; }
+  .logo-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: linear-gradient(135deg, #00c8ff, #4f8ef7);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -1px;
+    box-shadow: 0 0 20px rgba(0,200,255,.4);
+  }
+  .logo-text h1 { font-size: 22px; font-weight: 800; letter-spacing: -.5px; }
+  .logo-text h1 span { color: var(--accent); }
+  .logo-text p { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .badge-demo {
+    background: rgba(0,200,255,.12); border: 1px solid rgba(0,200,255,.3);
+    color: var(--accent); font-size: 11px; font-weight: 700;
+    padding: 4px 10px; border-radius: 20px; letter-spacing: 1px;
+    animation: pulse-badge 2s ease-in-out infinite;
+  }
+  @keyframes pulse-badge {
+    0%,100%{ box-shadow:0 0 0 0 rgba(0,200,255,.3); }
+    50%{ box-shadow:0 0 0 6px rgba(0,200,255,0); }
+  }
+
+  /* ===== HERO STRIP ===== */
+  .hero-strip {
+    background: linear-gradient(135deg, rgba(0,200,255,.08), rgba(79,142,247,.06));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 32px;
+    margin-bottom: 32px;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;
+  }
+  .hero-strip h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+  .hero-strip p { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+  .hero-kpi { display: flex; gap: 24px; flex-wrap: wrap; }
+  .kpi-item { text-align: center; }
+  .kpi-num { font-size: 26px; font-weight: 800; color: var(--accent); line-height: 1; }
+  .kpi-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+  /* ===== SECTION TITLE ===== */
+  .sec-title {
+    font-size: 13px; font-weight: 700; letter-spacing: 1.5px;
+    color: var(--accent); text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 14px;
+  }
+  .sec-title::before { content: ''; display: block; width: 16px; height: 2px; background: var(--accent); }
+
+  /* ===== STEP INDICATOR ===== */
+  .steps {
+    display: flex; gap: 0; margin-bottom: 28px; overflow: hidden; border-radius: 12px;
+    border: 1px solid var(--border);
+  }
+  .step {
+    flex: 1; padding: 12px 8px; text-align: center;
+    background: var(--bg-card); cursor: default;
+    border-right: 1px solid var(--border); transition: background .3s;
+  }
+  .step:last-child { border-right: none; }
+  .step.active { background: rgba(0,200,255,.1); }
+  .step-num {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--bg-input); border: 2px solid var(--border);
+    font-size: 11px; font-weight: 700; color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 5px;
+  }
+  .step.active .step-num { background: var(--accent); border-color: var(--accent); color: #000; }
+  .step-label { font-size: 11px; color: var(--text-muted); }
+  .step.active .step-label { color: var(--accent); font-weight: 600; }
+
+  /* ===== INPUT PANEL ===== */
+  .input-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 28px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label {
+    font-size: 12px; font-weight: 600; color: var(--text-dim);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .form-group label .required { color: var(--accent); font-size: 14px; }
+  .form-group input, .form-group select {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    color: var(--text);
+    font-size: 14px;
+    font-family: var(--font);
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+    -webkit-appearance: none;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(0,200,255,.12);
+  }
+  .form-group select { cursor: pointer; }
+  .form-group input::placeholder { color: var(--text-muted); }
+  .input-row { display: flex; gap: 8px; }
+  .input-row input { flex: 1; }
+  .unit {
+    background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 10px; color: var(--text-muted); font-size: 13px;
+    display: flex; align-items: center; white-space: nowrap;
+  }
+
+  /* ===== GENERATE BTN ===== */
+  .btn-generate {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #0066cc, #00c8ff);
+    border: none; border-radius: 10px; cursor: pointer;
+    font-size: 15px; font-weight: 700; color: #fff;
+    letter-spacing: .5px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: transform .15s, box-shadow .15s;
+    box-shadow: 0 4px 20px rgba(0,200,255,.3);
+    position: relative; overflow: hidden;
+  }
+  .btn-generate:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,200,255,.4); }
+  .btn-generate:active { transform: translateY(0); }
+  .btn-generate:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+  .btn-generate .btn-ripple {
+    position: absolute; border-radius: 50%;
+    background: rgba(255,255,255,.25);
+    transform: scale(0);
+    animation: ripple .6s linear;
+  }
+  @keyframes ripple { to { transform:scale(4); opacity:0; } }
+
+  /* ===== PROGRESS BAR ===== */
+  .progress-wrap {
+    display: none; margin-top: 16px;
+    background: var(--bg-input); border-radius: 8px; overflow: hidden; height: 6px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    border-radius: 8px;
+    width: 0%;
+    transition: width .4s ease;
+  }
+  .progress-status {
+    display: none; margin-top: 10px;
+    font-size: 12px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .spinner {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    animation: spin .8s linear infinite;
+    display: none;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  /* ===== RESULT TABS ===== */
+  .result-section { display: none; }
+  .result-section.visible { display: block; }
+  .tab-bar {
+    display: flex; gap: 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px 12px 0 0;
+    padding: 6px 6px 0;
+    margin-bottom: -1px;
+  }
+  .tab-btn {
+    padding: 10px 18px; border: none; background: transparent;
+    border-radius: 8px 8px 0 0; cursor: pointer;
+    font-size: 13px; font-weight: 600; color: var(--text-muted);
+    display: flex; align-items: center; gap: 7px;
+    transition: color .2s, background .2s;
+    position: relative;
+  }
+  .tab-btn:hover { color: var(--text-dim); background: rgba(255,255,255,.04); }
+  .tab-btn.active { color: var(--accent); background: rgba(0,200,255,.08); }
+  .tab-btn .tab-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: var(--border);
+    transition: background .2s;
+  }
+  .tab-btn.active .tab-dot { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .tab-btn .badge-count {
+    background: var(--red); color: #fff; font-size: 10px; font-weight: 700;
+    padding: 1px 5px; border-radius: 20px; min-width: 16px; text-align: center;
+    display: none;
+  }
+  .tab-content-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 0 12px 12px 12px;
+    padding: 28px;
+    min-height: 320px;
+  }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ===== RAG 제안서 탭 ===== */
+  .rag-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px; flex-wrap: wrap; gap: 10px;
+  }
+  .rag-header h3 { font-size: 15px; font-weight: 700; }
+  .rag-source-pill {
+    background: rgba(16,185,129,.12); border: 1px solid rgba(16,185,129,.3);
+    color: var(--green); font-size: 11px; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px;
+    display: flex; align-items: center; gap: 5px;
+  }
+  .rag-source-pill::before { content: '●'; font-size: 8px; animation: blink 1.5s infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .proposal-doc {
+    background: var(--bg-input); border-radius: 10px; padding: 22px 24px;
+    border: 1px solid var(--border); line-height: 1.9;
+    font-size: 13.5px; color: var(--text);
+  }
+  .proposal-doc h4 { font-size: 15px; font-weight: 700; color: var(--accent); margin-bottom: 12px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+  .proposal-doc p { margin-bottom: 10px; }
+  .proposal-doc .cite {
+    display: inline-block;
+    background: rgba(0,200,255,.1); border: 1px solid rgba(0,200,255,.25);
+    color: var(--accent); font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 4px; margin-left: 4px; vertical-align: middle;
+    cursor: default;
+  }
+  .typing-cursor {
+    display: inline-block; width: 2px; height: 15px;
+    background: var(--accent); margin-left: 2px;
+    animation: cursor-blink .7s infinite;
+    vertical-align: middle;
+  }
+  @keyframes cursor-blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .rag-sources {
+    margin-top: 16px;
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .source-chip {
+    background: var(--bg-dark); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 12px; font-size: 11px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .source-chip::before { content: '📄'; font-size: 10px; }
+
+  /* ===== 내역서 탭 ===== */
+  .cost-summary {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 12px; margin-bottom: 20px;
+  }
+  .cost-card {
+    background: var(--bg-input); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .cost-card .label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+  .cost-card .value { font-size: 20px; font-weight: 800; color: var(--text); }
+  .cost-card .value.accent { color: var(--accent); }
+  .cost-card .value.green { color: var(--green); }
+  .cost-card .sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .cost-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cost-table thead th {
+    background: var(--bg-dark); color: var(--text-muted);
+    font-size: 11px; font-weight: 600; text-align: left;
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+  }
+  .cost-table tbody td { padding: 10px 12px; border-bottom: 1px solid rgba(30,58,95,.5); }
+  .cost-table tbody tr:hover td { background: rgba(0,200,255,.03); }
+  .cost-table tbody tr:last-child td { border-bottom: none; }
+  .cost-table .td-name { font-weight: 600; }
+  .cost-table .td-num { text-align: right; font-family: 'Courier New', monospace; }
+  .cost-table .td-total { font-weight: 700; color: var(--accent); }
+  .cost-table tfoot td {
+    padding: 12px; font-weight: 800; font-size: 15px;
+    border-top: 2px solid var(--border);
+  }
+  .accuracy-bar-wrap { margin-top: 16px; }
+  .accuracy-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .accuracy-track { background: var(--bg-dark); border-radius: 20px; height: 8px; overflow: hidden; }
+  .accuracy-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--green), var(--accent)); width: 0%; transition: width 1.2s ease; }
+
+  /* ===== Rule-set 탭 ===== */
+  .rule-summary {
+    display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .rule-stat {
+    flex: 1; min-width: 100px;
+    background: var(--bg-input); border-radius: 10px; padding: 14px 16px;
+    text-align: center; border: 1px solid var(--border);
+  }
+  .rule-stat .rs-num { font-size: 28px; font-weight: 800; }
+  .rule-stat .rs-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .rule-stat.pass .rs-num { color: var(--green); }
+  .rule-stat.warn .rs-num { color: var(--yellow); }
+  .rule-stat.fail .rs-num { color: var(--red); }
+  .rule-list { display: flex; flex-direction: column; gap: 8px; }
+  .rule-item {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--bg-input); border-radius: 10px; padding: 12px 14px;
+    border: 1px solid var(--border); opacity: 0;
+    transform: translateX(-10px);
+    transition: opacity .3s, transform .3s;
+  }
+  .rule-item.show { opacity: 1; transform: translateX(0); }
+  .rule-icon {
+    width: 28px; height: 28px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; flex-shrink: 0;
+  }
+  .rule-icon.pass { background: rgba(16,185,129,.15); }
+  .rule-icon.warn { background: rgba(245,158,11,.15); }
+  .rule-icon.fail { background: rgba(239,68,68,.15); }
+  .rule-item.pass-item { border-color: rgba(16,185,129,.2); }
+  .rule-item.warn-item { border-color: rgba(245,158,11,.2); background: rgba(245,158,11,.04); }
+  .rule-item.fail-item { border-color: rgba(239,68,68,.2); background: rgba(239,68,68,.04); }
+  .rule-info { flex: 1; }
+  .rule-name { font-size: 13px; font-weight: 600; }
+  .rule-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .rule-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 20px;
+    flex-shrink: 0;
+  }
+  .rule-badge.pass { background: rgba(16,185,129,.15); color: var(--green); }
+  .rule-badge.warn { background: rgba(245,158,11,.15); color: var(--yellow); }
+  .rule-badge.fail { background: rgba(239,68,68,.15); color: var(--red); }
+
+  /* ===== FOOTER ===== */
+  .demo-footer {
+    margin-top: 40px; padding-top: 24px; border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+  }
+  .demo-footer p { font-size: 12px; color: var(--text-muted); }
+  .tech-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tech-pill {
+    background: var(--bg-input); border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+  }
+
+  /* ===== TOOLTIP ===== */
+  [data-tip] { position: relative; cursor: help; }
+  [data-tip]::after {
+    content: attr(data-tip);
+    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
+    background: #1e293b; border: 1px solid var(--border);
+    color: var(--text-dim); font-size: 11px; white-space: nowrap;
+    padding: 5px 10px; border-radius: 6px; pointer-events: none;
+    opacity: 0; transition: opacity .2s; z-index: 100;
+  }
+  [data-tip]:hover::after { opacity: 1; }
+
+  /* ===== SCROLL ANIMATION ===== */
+  .fade-in { opacity: 0; transform: translateY(16px); transition: opacity .5s, transform .5s; }
+  .fade-in.visible { opacity: 1; transform: none; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr 1fr; }
+    .hero-strip { flex-direction: column; }
+    .tab-btn { padding: 8px 10px; font-size: 12px; }
+    .tab-content-wrap { padding: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+<div class="bg-glow bg-glow-1"></div>
+<div class="bg-glow bg-glow-2"></div>
+
+<div class="wrapper">
+
+  <!-- ===== HEADER ===== -->
+  <header>
+    <div class="logo-wrap">
+      <div class="logo-icon">KSS</div>
+      <div class="logo-text">
+        <h1>Signum <span>KSS</span></h1>
+        <p>AI 사인물 표준화 · 디자인/설계 자동화 플랫폼</p>
+      </div>
+    </div>
+    <span class="badge-demo">DEMO v0.9</span>
+  </header>
+
+  <!-- ===== HERO STRIP ===== -->
+  <div class="hero-strip fade-in">
+    <div>
+      <h2>근거기반 RAG + 표준산식 + Rule-set 자동화 MVP</h2>
+      <p>치수·재질·설치유형을 입력하면, AI가 제안서·내역서·규정검토를 한 번에 생성합니다.<br>
+         모든 수치는 확정적 알고리즘이 계산합니다 — AI가 추론하지 않습니다.</p>
+    </div>
+    <div class="hero-kpi">
+      <div class="kpi-item">
+        <div class="kpi-num">95%</div>
+        <div class="kpi-label">재현성 목표</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-num">60+</div>
+        <div class="kpi-label">규정 룰셋</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-num">±5%</div>
+        <div class="kpi-label">오차율 목표</div>
+      </div>
+      <div class="kpi-item">
+        <div class="kpi-num">40%</div>
+        <div class="kpi-label">업무시간 절감</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== STEP INDICATOR ===== -->
+  <div class="steps fade-in">
+    <div class="step active" id="step1">
+      <div class="step-num">1</div>
+      <div class="step-label">정보 입력</div>
+    </div>
+    <div class="step" id="step2">
+      <div class="step-num">2</div>
+      <div class="step-label">AI 분석</div>
+    </div>
+    <div class="step" id="step3">
+      <div class="step-num">3</div>
+      <div class="step-label">제안서 생성</div>
+    </div>
+    <div class="step" id="step4">
+      <div class="step-num">4</div>
+      <div class="step-label">내역 산출</div>
+    </div>
+    <div class="step" id="step5">
+      <div class="step-num">5</div>
+      <div class="step-label">규정 검토</div>
+    </div>
+  </div>
+
+  <!-- ===== INPUT PANEL ===== -->
+  <div class="input-panel fade-in">
+    <div class="sec-title">사인물 기본 정보 입력</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>프로젝트명 <span class="required">*</span></label>
+        <input type="text" id="projectName" placeholder="예: 대구시청 안내 사인물" value="대구광역시 동구 행정복지센터">
+      </div>
+      <div class="form-group">
+        <label>사인물 유형 <span class="required">*</span></label>
+        <select id="signType">
+          <option value="outdoor_info">옥외 안내 간판</option>
+          <option value="road_guide">도로 유도 사인</option>
+          <option value="building_id" selected>건물 식별 사인</option>
+          <option value="floor_dir">층별 안내 사인</option>
+          <option value="parking">주차 유도 사인</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>가로 치수 <span class="required">*</span></label>
+        <div class="input-row">
+          <input type="number" id="width" value="2400" min="100" max="9999">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>세로 치수 <span class="required">*</span></label>
+        <div class="input-row">
+          <input type="number" id="height" value="900" min="100" max="9999">
+          <span class="unit">mm</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>주요 재질</label>
+        <select id="material">
+          <option value="alupanel">알루미늄 복합판넬</option>
+          <option value="stainless" selected>스테인리스 스틸</option>
+          <option value="acryl">아크릴</option>
+          <option value="galvanized">아연도금 강판</option>
+          <option value="wood">목재</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>설치 유형</label>
+        <select id="installType">
+          <option value="wall">벽면 부착</option>
+          <option value="pole" selected>폴 설치</option>
+          <option value="ceiling">천장 현수</option>
+          <option value="ground">지면 매립</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>지자체 / 지역</label>
+        <select id="region">
+          <option value="daegu" selected>대구광역시</option>
+          <option value="gyeongbuk">경상북도</option>
+          <option value="seoul">서울특별시</option>
+          <option value="busan">부산광역시</option>
+          <option value="incheon">인천광역시</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>수량</label>
+        <div class="input-row">
+          <input type="number" id="quantity" value="3" min="1" max="999">
+          <span class="unit">개</span>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-generate" id="btnGenerate" onclick="startGeneration(event)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+      AI 자동 생성 시작
+    </button>
+
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="progress-status" id="progressStatus" style="display:none;">
+      <div class="spinner" id="spinner"></div>
+      <span id="statusText">분석 중...</span>
+    </div>
+  </div>
+
+  <!-- ===== RESULT SECTION ===== -->
+  <div class="result-section fade-in" id="resultSection">
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab('rag', this)">
+        <span class="tab-dot"></span>
+        📄 RAG 제안서
+      </button>
+      <button class="tab-btn" onclick="switchTab('cost', this)">
+        <span class="tab-dot"></span>
+        🧮 내역서
+      </button>
+      <button class="tab-btn" onclick="switchTab('rules', this)" id="tabRules">
+        <span class="tab-dot"></span>
+        ✅ 규정 검토
+        <span class="badge-count" id="warnBadge">0</span>
+      </button>
+    </div>
+    <div class="tab-content-wrap">
+
+      <!-- RAG 탭 -->
+      <div class="tab-content active" id="tab-rag">
+        <div class="rag-header">
+          <h3 id="ragTitle">제안서 생성 중...</h3>
+          <span class="rag-source-pill">근거 100% 포함</span>
+        </div>
+        <div class="proposal-doc" id="proposalDoc">
+          <div style="color:var(--text-muted);font-size:13px;">생성 중입니다...</div>
+        </div>
+        <div class="rag-sources" id="ragSources"></div>
+      </div>
+
+      <!-- 내역서 탭 -->
+      <div class="tab-content" id="tab-cost">
+        <div class="sec-title" style="margin-bottom:16px;">확정적 알고리즘 — 표준산식 내역 산출</div>
+        <div class="cost-summary" id="costSummary"></div>
+        <table class="cost-table" id="costTable">
+          <thead>
+            <tr>
+              <th>항목</th>
+              <th>규격 / 산식근거</th>
+              <th style="text-align:right">단가</th>
+              <th style="text-align:right">수량</th>
+              <th style="text-align:right">금액</th>
+            </tr>
+          </thead>
+          <tbody id="costTableBody"></tbody>
+          <tfoot>
+            <tr>
+              <td colspan="4" style="font-weight:700;">합계 (VAT 별도)</td>
+              <td class="td-num td-total" id="totalAmount">-</td>
+            </tr>
+          </tfoot>
+        </table>
+        <div class="accuracy-bar-wrap">
+          <div class="accuracy-bar-label">
+            <span>산식 재현성 지수</span>
+            <span id="accuracyLabel">-</span>
+          </div>
+          <div class="accuracy-track">
+            <div class="accuracy-fill" id="accuracyFill"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rule-set 탭 -->
+      <div class="tab-content" id="tab-rules">
+        <div class="sec-title" style="margin-bottom:16px;">지자체 규정 자동 검증 (Rule-set Engine)</div>
+        <div class="rule-summary" id="ruleSummary"></div>
+        <div class="rule-list" id="ruleList"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <div class="demo-footer">
+    <p>© 2025 ㈜그룹칸 — 시그넘 KSS 데모 버전. 실제 산출 결과와 다를 수 있습니다.</p>
+    <div class="tech-pills">
+      <span class="tech-pill">RAG Engine</span>
+      <span class="tech-pill">Deterministic Algo</span>
+      <span class="tech-pill">Rule-set v0.9</span>
+      <span class="tech-pill">KSS Schema</span>
+    </div>
+  </div>
+
+</div><!-- /wrapper -->
+
+
+<script>
+/* ================================================
+   시그넘 KSS 데모 — JavaScript Core
+   ================================================ */
+
+// ── 재질별 단가 테이블 (원/㎡) ──────────────────
+const MAT_PRICE = {
+  alupanel:   { name: '알루미늄 복합판넬', price: 85000 },
+  stainless:  { name: '스테인리스 스틸',   price: 145000 },
+  acryl:      { name: '아크릴',            price: 110000 },
+  galvanized: { name: '아연도금 강판',      price: 72000 },
+  wood:       { name: '목재',              price: 58000 },
+};
+
+// ── 설치유형별 계수 ──────────────────────────────
+const INSTALL_COEFF = {
+  wall:    { name: '벽면 부착', coeff: 1.0, laborBase: 120000 },
+  pole:    { name: '폴 설치',   coeff: 1.4, laborBase: 240000 },
+  ceiling: { name: '천장 현수', coeff: 1.25, laborBase: 180000 },
+  ground:  { name: '지면 매립', coeff: 1.6, laborBase: 320000 },
+};
+
+// ── 사인물 유형 ──────────────────────────────────
+const SIGN_TYPES = {
+  outdoor_info: '옥외 안내 간판',
+  road_guide:   '도로 유도 사인',
+  building_id:  '건물 식별 사인',
+  floor_dir:    '층별 안내 사인',
+  parking:      '주차 유도 사인',
+};
+
+// ── 지역별 규정 ──────────────────────────────────
+const REGION_RULES = {
+  daegu:    { name: '대구광역시', maxArea: 5.0, maxLumen: 600, colorLimit: true },
+  gyeongbuk:{ name: '경상북도',   maxArea: 8.0, maxLumen: 800, colorLimit: false },
+  seoul:    { name: '서울특별시', maxArea: 3.0, maxLumen: 400, colorLimit: true },
+  busan:    { name: '부산광역시', maxArea: 6.0, maxLumen: 700, colorLimit: false },
+  incheon:  { name: '인천광역시', maxArea: 4.5, maxLumen: 550, colorLimit: true },
+};
+
+// ── RAG 제안서 템플릿 ─────────────────────────────
+const RAG_TEMPLATES = {
+  building_id: (data) => `
+<h4>건물 식별 사인물 설치 제안서</h4>
+<p>본 제안서는 <strong>${data.projectName}</strong>의 건물 식별 사인물 제작 및 설치에 관한 사항을 기술한 것으로, 관련 규정 및 실무 사례를 근거로 작성되었습니다. <span class="cite" data-tip="대구광역시 옥외광고물 관리 조례 제8조">조례§8</span></p>
+<p>해당 사인물의 규격은 가로 ${(data.width/1000).toFixed(1)}m × 세로 ${(data.height/1000).toFixed(1)}m로, 면적 ${data.area.toFixed(2)}㎡에 해당합니다. ${data.regionName}의 건물 식별 사인물 최대 허용 면적인 ${data.rules.maxArea}㎡ ${data.area <= data.rules.maxArea ? '이내로 <strong>적합</strong>합니다' : '을 초과하여 <strong>검토 필요</strong>'}. <span class="cite" data-tip="국토교통부 공공디자인 가이드라인 2023">국토부GD</span></p>
+<p>주요 재질로 선정된 <strong>${data.materialName}</strong>은 내후성 및 유지보수 측면에서 공공시설물에 적합한 소재로, 최소 10년 이상의 내구성이 인증된 소재입니다. 표면 처리는 분체도장 방식을 적용하여 장기 보존성을 확보합니다. <span class="cite" data-tip="KS D 3759 알루미늄 합금 압출 형재">KS D3759</span></p>
+<p>설치 방식은 <strong>${data.installName}</strong>으로 진행하며, 지면 기초 공사 및 앵커볼트 고정 방식을 적용합니다. 구조 안전성은 풍압 하중 기준 750Pa 이상을 만족하는 구조로 설계됩니다. <span class="cite" data-tip="건축물의 구조기준 등에 관한 규칙 별표11">구조규칙</span></p>
+<p>본 시설물의 예상 공사 기간은 자재 수급 포함 약 <strong>15~20 영업일</strong>이며, 설치 완료 후 1년간 무상 하자보수를 제공합니다.</p>`,
+
+  outdoor_info: (data) => `
+<h4>옥외 안내 간판 제작·설치 제안서</h4>
+<p>본 제안서는 <strong>${data.projectName}</strong>의 옥외 안내 간판 제작 및 설치에 관한 기술 제안으로, 「옥외광고물 등의 관리와 옥외광고산업 진흥에 관한 법률」 및 ${data.regionName} 조례를 준거로 작성되었습니다. <span class="cite" data-tip="옥외광고물법 제2조 및 시행령">옥광법</span></p>
+<p>제안 규격 ${(data.width/1000).toFixed(1)}m × ${(data.height/1000).toFixed(1)}m(면적 ${data.area.toFixed(2)}㎡)는 해당 지역 기준 허용 면적 ${data.rules.maxArea}㎡ 대비 ${data.area <= data.rules.maxArea ? '적합 범위 내에 있습니다' : '초과 상태로 면적 조정이 필요합니다'}. <span class="cite" data-tip="${data.regionName} 옥외광고물 관리 조례 제15조">지역조례§15</span></p>
+<p>소재는 <strong>${data.materialName}</strong>을 적용하며, 표면 처리는 UV 코팅 처리를 통해 변색 및 퇴색을 방지합니다. 야간 가시성 확보를 위한 조명 설비의 광도는 ${data.rules.maxLumen}cd/㎡ 이하로 설계됩니다. <span class="cite" data-tip="KS C 7612 조명설비 기준">KS C7612</span></p>
+<p>시공은 <strong>${data.installName}</strong> 방식으로 수행하며, 구조체 설계는 풍속 30m/s 기준 안전율 1.5 이상을 적용합니다.</p>`,
+
+  road_guide: (data) => `
+<h4>도로 유도 사인 제작·설치 제안서</h4>
+<p><strong>${data.projectName}</strong>의 도로 유도 사인물 설치 제안으로, 「도로표지 규칙」 및 행정안전부 공공디자인 가이드라인을 준거합니다. <span class="cite" data-tip="도로표지 규칙(국토부고시) 제3조">도표규칙§3</span></p>
+<p>설치 규격 ${(data.width/1000).toFixed(1)}m × ${(data.height/1000).toFixed(1)}m은 도로유도 표준 규격 범위 내에 있으며, 반사지 등급은 Type IV 이상(재귀반사 계수 250cd/lx/㎡ 이상)을 적용합니다. <span class="cite" data-tip="KS M 3026 도로표지용 재귀반사 시트">KS M3026</span></p>
+<p>소재 <strong>${data.materialName}</strong>의 내구성은 한국건설기술연구원 인증 기준 15년 이상이며, 설치 방식(<strong>${data.installName}</strong>)은 도로점용허가 기준에 적합합니다. <span class="cite" data-tip="도로법 제61조 도로점용 허가">도로법§61</span></p>`,
+
+  floor_dir: (data) => `
+<h4>층별 안내 사인 제작·설치 제안서</h4>
+<p><strong>${data.projectName}</strong>의 층별 안내 사인물 설치 제안으로, 「장애인·노인·임산부 등의 편의증진 보장에 관한 법률」 및 BF 인증 기준을 준거합니다. <span class="cite" data-tip="편의증진법 제8조 및 시행령">편의법§8</span></p>
+<p>규격 ${(data.width/1000).toFixed(1)}m × ${(data.height/1000).toFixed(1)}m의 안내 사인은 BF 인증 기준 시인 거리(5m 이상) 및 문자 크기 기준(최소 16pt 이상)을 만족하는 설계를 적용합니다. <span class="cite" data-tip="BF 인증 평가 기준 2023">BF인증</span></p>
+<p>소재 <strong>${data.materialName}</strong>은 실내 환경에 적합하며, 유니버설 디자인 원칙에 따라 명도 대비 70% 이상의 색채 계획을 적용합니다. <span class="cite" data-tip="한국색채학회 공공사인 색채 가이드">색채GD</span></p>`,
+
+  parking: (data) => `
+<h4>주차 유도 사인 제작·설치 제안서</h4>
+<p><strong>${data.projectName}</strong>의 주차 유도 사인물 설치 제안으로, 「주차장법 시행규칙」 및 국토부 주차시설 설계 기준을 준거합니다. <span class="cite" data-tip="주차장법 시행규칙 제6조">주차규칙§6</span></p>
+<p>주차 유도 사인 규격 ${(data.width/1000).toFixed(1)}m × ${(data.height/1000).toFixed(1)}m은 운전자 시인 거리 20m 기준 가시성 확보에 적합하며, 야간 조명은 LED 광원(소비전력 30W/㎡ 이하)을 적용합니다. <span class="cite" data-tip="KS C 7619 조명설비 에너지 절약 기준">KS C7619</span></p>
+<p>소재 <strong>${data.materialName}</strong>은 실외 환경의 오염물질 및 자동차 배기가스에 대한 내화학성이 인증된 소재이며, 설치 방식(<strong>${data.installName}</strong>)은 주차장 구조물과의 간섭을 최소화하는 공법입니다. <span class="cite" data-tip="건축구조기준 KDS 41 10 15">KDS§4110</span></p>`,
+};
+
+// ── 확정적 알고리즘 — 표준산식 내역 계산 ──────────
+function calcCost(width, height, material, installType, quantity) {
+  const w = width / 1000;   // mm → m
+  const h = height / 1000;
+  const area = w * h;
+  const mat = MAT_PRICE[material];
+  const inst = INSTALL_COEFF[installType];
+
+  // 재료비
+  const matUnit    = Math.round(area * mat.price);
+  const matTotal   = matUnit * quantity;
+
+  // 도장·표면처리비 (재료비의 22%)
+  const paintUnit  = Math.round(matUnit * 0.22);
+  const paintTotal = paintUnit * quantity;
+
+  // 시트·그래픽비 (면적 × 35,000)
+  const sheetUnit  = Math.round(area * 35000);
+  const sheetTotal = sheetUnit * quantity;
+
+  // 설치노무비 (기본 + 면적 계수)
+  const laborUnit  = Math.round((inst.laborBase + area * 45000) * inst.coeff);
+  const laborTotal = laborUnit * quantity;
+
+  // 구조·기초공사비
+  const structUnit = installType === 'pole' || installType === 'ground'
+    ? Math.round(180000 * inst.coeff)
+    : Math.round(60000 * inst.coeff);
+  const structTotal = structUnit * quantity;
+
+  // 운반·설치 경비 (노무비의 15%)
+  const expUnit    = Math.round(laborUnit * 0.15);
+  const expTotal   = expUnit * quantity;
+
+  const grandTotal = matTotal + paintTotal + sheetTotal + laborTotal + structTotal + expTotal;
+
+  return {
+    area, rows: [
+      { name: '주요 재질 가공',     spec: `${mat.name} | ${w.toFixed(2)}m×${h.toFixed(2)}m×${quantity}ea`,      unit: matUnit,    qty: quantity, total: matTotal },
+      { name: '도장·표면처리',       spec: `분체도장 | 재료비의 22%`,                                               unit: paintUnit,  qty: quantity, total: paintTotal },
+      { name: '시트·그래픽 출력',    spec: `디지털 UV 출력 | ㎡당 35,000원`,                                       unit: sheetUnit,  qty: quantity, total: sheetTotal },
+      { name: `설치 노무비 (${inst.name})`, spec: `기본 ${inst.laborBase.toLocaleString()}원 × 계수${inst.coeff}`, unit: laborUnit,  qty: quantity, total: laborTotal },
+      { name: '구조·기초공사',       spec: installType === 'pole' || installType === 'ground' ? '기초 콘크리트 타설 포함' : '앵커볼트 고정', unit: structUnit, qty: quantity, total: structTotal },
+      { name: '운반·현장경비',       spec: `노무비의 15%`,                                                          unit: expUnit,    qty: quantity, total: expTotal },
+    ],
+    grandTotal
+  };
+}
+
+// ── Rule-set 엔진 ─────────────────────────────────
+function checkRules(width, height, material, installType, region) {
+  const area = (width / 1000) * (height / 1000);
+  const rules = REGION_RULES[region];
+  const results = [];
+
+  // 규칙 1: 면적 제한
+  results.push({
+    name: '사인물 최대 면적 기준',
+    desc: `${rules.name} 조례 — 최대 허용면적 ${rules.maxArea}㎡ / 현재: ${area.toFixed(2)}㎡`,
+    status: area <= rules.maxArea ? 'pass' : 'fail',
+    msg:   area <= rules.maxArea ? '적합' : '기준 초과 — 면적 조정 필요',
+  });
+
+  // 규칙 2: 조명 광도
+  const lumens = 580;
+  results.push({
+    name: '조명 광도(cd/㎡) 제한',
+    desc: `허용 기준 ${rules.maxLumen}cd/㎡ / 설계 값: ${lumens}cd/㎡`,
+    status: lumens <= rules.maxLumen ? 'pass' : 'warn',
+    msg:   lumens <= rules.maxLumen ? '기준 이하 — 적합' : '기준 초과 주의',
+  });
+
+  // 규칙 3: 색채 제한
+  if (rules.colorLimit) {
+    results.push({
+      name: '경관 색채 가이드라인',
+      desc: `${rules.name} 경관조례 — 원색 계열 사용 제한`,
+      status: 'warn',
+      msg: '색채 계획 심의 확인 필요',
+    });
+  } else {
+    results.push({
+      name: '경관 색채 가이드라인',
+      desc: '해당 지역 색채 제한 없음',
+      status: 'pass',
+      msg: '해당 없음 — 적합',
+    });
+  }
+
+  // 규칙 4: 설치 높이
+  const installOk = !(installType === 'pole' && height > 4000);
+  results.push({
+    name: '설치 높이 기준',
+    desc: `폴 설치 시 최대 높이 4,000mm / 세로: ${height}mm`,
+    status: installOk ? 'pass' : 'warn',
+    msg:   installOk ? '기준 내 — 적합' : '고도 심의 확인 권장',
+  });
+
+  // 규칙 5: 도로이격거리
+  const roadOk = !(installType === 'pole' || installType === 'ground');
+  results.push({
+    name: '도로 이격거리 (2m 이상)',
+    desc: '도로법 제61조 — 도로경계선으로부터 2m 이상',
+    status: roadOk ? 'pass' : 'warn',
+    msg:   roadOk ? '해당 없음 — 적합' : '현장 실측 후 확인 필요',
+  });
+
+  // 규칙 6: 구조안전
+  results.push({
+    name: '구조안전 검토 (풍압)',
+    desc: '건축구조기준 — 기본풍속 750Pa 이상 설계 여부',
+    status: 'pass',
+    msg: '표준 설계 적용 — 적합',
+  });
+
+  // 규칙 7: 소방 이격
+  results.push({
+    name: '소방시설 이격 거리',
+    desc: '소방기본법 — 소화전·비상구 반경 0.5m 이내 설치 금지',
+    status: 'pass',
+    msg: '설계 기준 만족',
+  });
+
+  // 규칙 8: 재질 기준 (목재 제한)
+  const matOk = material !== 'wood' || installType !== 'outdoor_info';
+  results.push({
+    name: '재질 내후성 기준',
+    desc: '옥외 공공시설물 내후성 KS 기준 (10년 이상)',
+    status: material === 'wood' ? 'warn' : 'pass',
+    msg:   material === 'wood' ? '목재 — 방부 처리 필수 확인' : 'KS 기준 만족 소재',
+  });
+
+  // 규칙 9: 점용허가 여부
+  results.push({
+    name: '도로/공유지 점용 허가',
+    desc: '지면 매립·폴 설치 시 공유지 점용 허가 사전 취득',
+    status: (installType === 'pole' || installType === 'ground') ? 'warn' : 'pass',
+    msg:   (installType === 'pole' || installType === 'ground') ? '점용 허가 사전 취득 필요' : '해당 없음',
+  });
+
+  // 규칙 10: 환경부 빛 공해 기준
+  results.push({
+    name: '빛 공해 방지 기준',
+    desc: `인공조명에 의한 빛 공해 방지법 — 허용 조도 기준 적합 여부`,
+    status: 'pass',
+    msg: 'LED 적정 광도 설계 — 기준 만족',
+  });
+
+  return results;
+}
+
+// ── UI 유틸 ─────────────────────────────────────
+function fmt(n) { return Math.round(n).toLocaleString('ko-KR') + '원'; }
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+async function typeText(el, html, speed = 8) {
+  el.innerHTML = '';
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  const fullText = tmp.innerHTML;
+
+  let i = 0;
+  const cursor = document.createElement('span');
+  cursor.className = 'typing-cursor';
+  el.appendChild(cursor);
+
+  while (i < fullText.length) {
+    cursor.insertAdjacentHTML('beforebegin', fullText[i]);
+    i++;
+    if (i % 4 === 0) await sleep(speed);
+  }
+  cursor.remove();
+}
+
+function countUp(el, target, duration = 1200) {
+  const start = Date.now();
+  const step = () => {
+    const elapsed = Date.now() - start;
+    const progress = Math.min(elapsed / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const current = Math.round(target * ease);
+    el.textContent = current.toLocaleString('ko-KR') + '원';
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── 메인 생성 플로우 ──────────────────────────────
+async function startGeneration(e) {
+  // Ripple 효과
+  const btn = document.getElementById('btnGenerate');
+  const ripple = document.createElement('span');
+  ripple.className = 'btn-ripple';
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  ripple.style.cssText = `width:${size}px;height:${size}px;left:${e.clientX-rect.left-size/2}px;top:${e.clientY-rect.top-size/2}px`;
+  btn.appendChild(ripple);
+  setTimeout(() => ripple.remove(), 700);
+
+  // 입력값 수집
+  const projectName = document.getElementById('projectName').value || '미입력';
+  const signType    = document.getElementById('signType').value;
+  const width       = parseInt(document.getElementById('width').value) || 2400;
+  const height      = parseInt(document.getElementById('height').value) || 900;
+  const material    = document.getElementById('material').value;
+  const installType = document.getElementById('installType').value;
+  const region      = document.getElementById('region').value;
+  const quantity    = parseInt(document.getElementById('quantity').value) || 1;
+
+  const area        = (width / 1000) * (height / 1000);
+  const matData     = MAT_PRICE[material];
+  const instData    = INSTALL_COEFF[installType];
+  const regionData  = REGION_RULES[region];
+
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner" style="display:block;width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;animation:spin .8s linear infinite;border-radius:50%;"></div> AI 처리 중...`;
+
+  // 프로그레스
+  const pw = document.getElementById('progressWrap');
+  const pb = document.getElementById('progressBar');
+  const ps = document.getElementById('progressStatus');
+  const sp = document.getElementById('spinner');
+  const st = document.getElementById('statusText');
+  pw.style.display = 'block';
+  ps.style.display = 'flex';
+  sp.style.display = 'block';
+
+  const statuses = [
+    [15,  'Feature Schema 표준화 중...'],
+    [30,  'RAG 지식베이스 검색 중...'],
+    [48,  '관련 규정 문서 3건 인용...'],
+    [62,  '표준산식 DB 조회 중...'],
+    [75,  '내역 항목 계산 중...'],
+    [88,  'Rule-set 60개 항목 검토 중...'],
+    [96,  '문서 구조화 및 최종 생성 중...'],
+    [100, '생성 완료 ✓'],
+  ];
+
+  // 스텝 표시
+  const stepEls = [null, 'step1','step2','step3','step4','step5'].map(id => id ? document.getElementById(id) : null);
+
+  for (const [pct, msg] of statuses) {
+    pb.style.width = pct + '%';
+    st.textContent = msg;
+
+    if (pct >= 15)  { stepEls[1].classList.remove('active'); stepEls[2].classList.add('active'); }
+    if (pct >= 48)  { stepEls[2].classList.remove('active'); stepEls[3].classList.add('active'); }
+    if (pct >= 62)  { stepEls[3].classList.remove('active'); stepEls[4].classList.add('active'); }
+    if (pct >= 88)  { stepEls[4].classList.remove('active'); stepEls[5].classList.add('active'); }
+
+    await sleep(400);
+  }
+
+  sp.style.display = 'none';
+  await sleep(200);
+
+  // 결과 섹션 표시
+  const resultSection = document.getElementById('resultSection');
+  resultSection.classList.add('visible');
+  resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // ── RAG 제안서 생성 ─────────────────────────────
+  const ragData = {
+    projectName, area, rules: regionData, regionName: regionData.name,
+    materialName: matData.name, installName: instData.name,
+  };
+  const ragHtml = (RAG_TEMPLATES[signType] || RAG_TEMPLATES.building_id)(ragData);
+  document.getElementById('ragTitle').textContent = `${projectName} — ${SIGN_TYPES[signType]} 제안서`;
+  await typeText(document.getElementById('proposalDoc'), ragHtml, 5);
+
+  // 인용 소스 표시
+  const sources = ['옥외광고물관리법', `${regionData.name} 조례`, 'KS 자재 기준', '공공디자인 가이드라인'];
+  const ragSrc = document.getElementById('ragSources');
+  ragSrc.innerHTML = '<span style="font-size:11px;color:var(--text-muted);margin-right:4px;">참조 문서:</span>';
+  sources.forEach((s, i) => {
+    setTimeout(() => {
+      const chip = document.createElement('div');
+      chip.className = 'source-chip';
+      chip.textContent = s;
+      ragSrc.appendChild(chip);
+    }, i * 120);
+  });
+
+  // ── 내역서 산출 ──────────────────────────────────
+  const costData = calcCost(width, height, material, installType, quantity);
+
+  // 요약 카드
+  const costSummary = document.getElementById('costSummary');
+  costSummary.innerHTML = `
+    <div class="cost-card"><div class="label">면적 (1개)</div><div class="value">${costData.area.toFixed(2)} ㎡</div></div>
+    <div class="cost-card"><div class="label">재질 단가 (㎡)</div><div class="value">${matData.price.toLocaleString()}원</div><div class="sub">${matData.name}</div></div>
+    <div class="cost-card"><div class="label">설치 계수</div><div class="value">${instData.coeff}×</div><div class="sub">${instData.name}</div></div>
+    <div class="cost-card"><div class="label">합계 (VAT 별도)</div><div class="value accent" id="heroTotal">0원</div><div class="sub">수량 ${quantity}개 기준</div></div>
+  `;
+
+  // 테이블
+  const tbody = document.getElementById('costTableBody');
+  tbody.innerHTML = '';
+  costData.rows.forEach(row => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="td-name">${row.name}</td>
+      <td style="color:var(--text-muted);font-size:12px;">${row.spec}</td>
+      <td class="td-num">${row.unit.toLocaleString()}</td>
+      <td class="td-num">${row.qty}</td>
+      <td class="td-num td-total">${row.total.toLocaleString()}</td>`;
+    tbody.appendChild(tr);
+  });
+
+  const totalEl = document.getElementById('totalAmount');
+  const heroTotalEl = document.getElementById('heroTotal');
+  totalEl.textContent = '-';
+  await sleep(300);
+  countUp(totalEl, costData.grandTotal);
+  countUp(heroTotalEl, costData.grandTotal);
+
+  // 재현성 바
+  const acc = 88 + Math.floor(Math.random() * 7);
+  document.getElementById('accuracyLabel').textContent = `${acc}% 재현성 (목표: 95%)`;
+  await sleep(500);
+  document.getElementById('accuracyFill').style.width = acc + '%';
+
+  // ── Rule-set 검증 ────────────────────────────────
+  const rules = checkRules(width, height, material, installType, region);
+  const passCount = rules.filter(r => r.status === 'pass').length;
+  const warnCount = rules.filter(r => r.status === 'warn').length;
+  const failCount = rules.filter(r => r.status === 'fail').length;
+
+  document.getElementById('ruleSummary').innerHTML = `
+    <div class="rule-stat pass"><div class="rs-num">${passCount}</div><div class="rs-label">적합</div></div>
+    <div class="rule-stat warn"><div class="rs-num">${warnCount}</div><div class="rs-label">검토 필요</div></div>
+    <div class="rule-stat fail"><div class="rs-num">${failCount}</div><div class="rs-label">위반</div></div>
+    <div class="rule-stat"><div class="rs-num">${rules.length}</div><div class="rs-label">총 검토 항목</div></div>
+  `;
+
+  // 경고 배지
+  const badge = document.getElementById('warnBadge');
+  if (warnCount + failCount > 0) {
+    badge.textContent = warnCount + failCount;
+    badge.style.display = 'inline-block';
+  }
+
+  const ruleList = document.getElementById('ruleList');
+  ruleList.innerHTML = '';
+  const icons = { pass: '✓', warn: '⚠', fail: '✕' };
+  rules.forEach((r, i) => {
+    const div = document.createElement('div');
+    div.className = `rule-item ${r.status}-item`;
+    div.innerHTML = `
+      <div class="rule-icon ${r.status}">${icons[r.status]}</div>
+      <div class="rule-info">
+        <div class="rule-name">${r.name}</div>
+        <div class="rule-desc">${r.desc}</div>
+      </div>
+      <span class="rule-badge ${r.status}">${r.msg}</span>`;
+    ruleList.appendChild(div);
+    setTimeout(() => div.classList.add('show'), i * 80);
+  });
+
+  // 버튼 복구
+  btn.disabled = false;
+  btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> 다시 생성`;
+}
+
+// ── 스크롤 페이드인 ───────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
