@@ -1,0 +1,2024 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Signum KSS (MVP) - 샘플 데모</title>
+  <style>
+    :root{
+      --bg:#0b1020; --card:#121a33; --muted:#7f8bb3; --text:#e9eeff;
+      --line:rgba(255,255,255,.09); --accent:#66e3ff; --accent2:#7c5cff;
+      --good:#3ee28f; --warn:#ffcc66; --bad:#ff6b6b;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans KR", Arial, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 700px at 20% 0%, rgba(124,92,255,.22), transparent 60%),
+                  radial-gradient(900px 600px at 80% 10%, rgba(102,227,255,.18), transparent 55%),
+                  linear-gradient(180deg, #070a14, #0b1020 40%, #070a14);
+      color:var(--text);
+    }
+    a{color:inherit}
+    .wrap{max-width:1340px; margin:0 auto; padding:20px}
+
+    /* ── Header ──────────────────────────── */
+    header{
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
+      padding:14px 18px; border:1px solid var(--line); border-radius:var(--radius);
+      background:rgba(18,26,51,.72); backdrop-filter:blur(10px);
+      box-shadow:var(--shadow);
+      position:sticky; top:12px; z-index:20;
+      flex-wrap:wrap;
+    }
+    .brand{display:flex; gap:12px; align-items:center; min-width:0; flex:1}
+    .logo{
+      flex-shrink:0;
+      width:42px;height:42px;border-radius:14px;
+      background:linear-gradient(135deg, rgba(102,227,255,.95), rgba(124,92,255,.95));
+      box-shadow:0 10px 30px rgba(124,92,255,.25);
+    }
+    .title{display:flex; flex-direction:column; line-height:1.1; min-width:0}
+    .title b{font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .title span{font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid var(--line); background:rgba(255,255,255,.04);
+      color:var(--muted); font-size:12px;
+      white-space:nowrap; flex-shrink:0; cursor:pointer;
+    }
+    .dot{width:8px;height:8px;border-radius:50%; background:var(--good); animation:pulse 2s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(62,226,143,.4)} 50%{opacity:.8;box-shadow:0 0 0 5px rgba(62,226,143,0)}}
+
+    /* ── Layout ──────────────────────────── */
+    .grid{
+      margin-top:16px;
+      display:grid; grid-template-columns:220px 1fr; gap:16px;
+    }
+
+    /* ── Nav ──────────────────────────────── */
+    nav{
+      border:1px solid var(--line); border-radius:var(--radius);
+      background:rgba(18,26,51,.55); backdrop-filter:blur(10px);
+      box-shadow:var(--shadow);
+      overflow:hidden; align-self:start; position:sticky; top:84px;
+      max-height:calc(100vh - 100px); overflow-y:auto;
+    }
+    nav::-webkit-scrollbar{width:4px}
+    nav::-webkit-scrollbar-track{background:transparent}
+    nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+    .nav-head{
+      padding:14px 14px 10px; border-bottom:1px solid var(--line);
+      position:sticky; top:0; background:rgba(18,26,51,.9); z-index:1;
+    }
+    .nav-head h3{margin:0; font-size:13px}
+    .nav-head p{margin:6px 0 0; font-size:11px; color:var(--muted); line-height:1.4}
+    .nav-list{padding:8px}
+    .nav-item{
+      display:flex; gap:8px; align-items:center;
+      padding:9px 10px; border-radius:12px; cursor:pointer;
+      border:1px solid transparent; transition:background .15s, border-color .15s;
+    }
+    .nav-item:hover{background:rgba(255,255,255,.05)}
+    .nav-item.active{
+      border-color:rgba(102,227,255,.35);
+      background:linear-gradient(180deg, rgba(102,227,255,.10), rgba(124,92,255,.06));
+    }
+    .nav-ic{
+      width:26px;height:26px;border-radius:8px;
+      background:rgba(255,255,255,.06);
+      display:flex; align-items:center; justify-content:center;
+      border:1px solid var(--line); font-size:13px; flex-shrink:0;
+    }
+    .nav-txt{min-width:0}
+    .nav-txt b{display:block; font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .nav-txt span{display:block; margin-top:2px; font-size:11px; color:var(--muted); line-height:1.3;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+    /* ── Main ────────────────────────────── */
+    main{
+      border:1px solid var(--line); border-radius:var(--radius);
+      background:rgba(18,26,51,.55); backdrop-filter:blur(10px);
+      box-shadow:var(--shadow); overflow:hidden; min-height:720px;
+    }
+    .main-head{
+      padding:16px 18px; border-bottom:1px solid var(--line);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      flex-wrap:wrap;
+    }
+    .main-head h2{margin:0; font-size:16px}
+    .main-head p{margin:6px 0 0; font-size:12px; color:var(--muted); line-height:1.45; max-width:720px}
+    .actions{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .btn{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:9px 12px; border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      color:var(--text); font-size:12px; cursor:pointer;
+      user-select:none; transition:background .15s, border-color .15s; white-space:nowrap;
+    }
+    .btn:hover{background:rgba(255,255,255,.09)}
+    .btn:active{transform:scale(.97)}
+    .btn.primary{
+      border-color:rgba(102,227,255,.35);
+      background:linear-gradient(135deg, rgba(102,227,255,.16), rgba(124,92,255,.12));
+    }
+    .btn.primary:hover{background:linear-gradient(135deg, rgba(102,227,255,.24), rgba(124,92,255,.18))}
+    .btn.danger{
+      border-color:rgba(255,107,107,.35);
+      background:rgba(255,107,107,.08);
+    }
+    .btn.danger:hover{background:rgba(255,107,107,.16)}
+    .btn:disabled,.btn[disabled]{opacity:.45; pointer-events:none}
+    .content{padding:16px 18px}
+
+    /* ── Cards & Grid ────────────────────── */
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+    .row.full{grid-template-columns:1fr}
+    .card{
+      border:1px solid var(--line); border-radius:var(--radius);
+      background:rgba(255,255,255,.03); padding:14px;
+    }
+    .card h4{margin:0 0 10px; font-size:13px}
+    .sub{font-size:12px; color:var(--muted); line-height:1.45}
+    label{display:block; font-size:12px; color:var(--muted); margin:10px 0 6px}
+    input, select, textarea{
+      width:100%; padding:10px; border-radius:12px;
+      border:1px solid var(--line); background:rgba(0,0,0,.20);
+      color:var(--text); outline:none; font-size:13px;
+      transition:border-color .15s;
+    }
+    input:focus, select:focus, textarea:focus{border-color:rgba(102,227,255,.4)}
+    textarea{min-height:120px; resize:vertical; font-family:var(--sans)}
+    textarea.mono{font-family:var(--mono); font-size:12px}
+    .kv{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+
+    /* ── Table ───────────────────────────── */
+    .table{
+      width:100%; border-collapse:collapse; font-size:12px;
+      overflow:hidden; border-radius:14px; border:1px solid var(--line);
+    }
+    .table th,.table td{
+      padding:10px; border-bottom:1px solid var(--line);
+      vertical-align:middle; word-break:keep-all;
+    }
+    /* 특정 컬럼만 nowrap — 일반 td는 wrapping 허용 */
+    .table th{
+      text-align:left; color:var(--muted); font-weight:600;
+      background:rgba(255,255,255,.03); white-space:nowrap;
+    }
+    .table .nowrap{white-space:nowrap}
+    .table tr:last-child td{border-bottom:none}
+    .table tbody tr{transition:background .12s}
+    .table tbody tr:hover{background:rgba(255,255,255,.025)}
+
+    /* ── Tags ────────────────────────────── */
+    .tag{
+      display:inline-flex; align-items:center; gap:5px;
+      padding:3px 8px; border-radius:999px;
+      border:1px solid var(--line); background:rgba(255,255,255,.04);
+      color:var(--muted); font-size:11px; white-space:nowrap;
+    }
+    .tag.good{border-color:rgba(62,226,143,.35); color:rgba(62,226,143,.95); background:rgba(62,226,143,.08)}
+    .tag.warn{border-color:rgba(255,204,102,.35); color:rgba(255,204,102,.95); background:rgba(255,204,102,.08)}
+    .tag.bad{border-color:rgba(255,107,107,.35); color:rgba(255,107,107,.95); background:rgba(255,107,107,.08)}
+
+    /* ── Misc ────────────────────────────── */
+    .mono{font-family:var(--mono)}
+    .divider{height:1px; background:var(--line); margin:14px 0}
+    .flex{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .right{margin-left:auto}
+    .notice{
+      border:1px dashed rgba(102,227,255,.35); background:rgba(102,227,255,.06);
+      padding:10px 12px; border-radius:14px; font-size:12px;
+      color:rgba(233,238,255,.92); line-height:1.5;
+    }
+
+    /* ── Audit Box ───────────────────────── */
+    .audit{
+      max-height:400px; overflow-y:auto;
+      border-radius:14px; border:1px solid var(--line);
+      background:rgba(0,0,0,.20); padding:10px;
+    }
+    .audit::-webkit-scrollbar{width:4px}
+    .audit::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:4px}
+    .audit-item{
+      padding:10px; border:1px solid var(--line); border-radius:12px;
+      background:rgba(255,255,255,.03); margin-bottom:8px;
+    }
+    .audit-item:last-child{margin-bottom:0}
+    .audit-item .meta{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+    .audit-item .meta b{font-size:12px}
+    .audit-item .meta .ts{font-size:11px; color:var(--muted)}
+    .audit-item .meta .msg{font-size:12px}
+    /* meta JSON — 접을 수 있도록 말줄임 */
+    .audit-item .meta-detail{
+      margin-top:6px; font-size:11px; color:var(--muted);
+      font-family:var(--mono); word-break:break-all; line-height:1.5;
+      max-height:60px; overflow:hidden; position:relative;
+    }
+    .audit-item .meta-detail.expanded{max-height:none}
+    .audit-item .meta-detail::after{
+      content:""; position:absolute; bottom:0; left:0; right:0;
+      height:20px; background:linear-gradient(transparent, rgba(0,0,0,.2));
+      pointer-events:none;
+    }
+    .audit-item .meta-detail.expanded::after{display:none}
+    .audit-expand{
+      font-size:11px; color:var(--muted); cursor:pointer;
+      display:inline-block; margin-top:3px;
+    }
+    .audit-expand:hover{color:var(--accent)}
+
+    .kbd{
+      font-family:var(--mono); font-size:11px; padding:2px 6px;
+      border-radius:8px; border:1px solid var(--line);
+      background:rgba(255,255,255,.04); color:var(--muted);
+    }
+
+    /* ── Toast ───────────────────────────── */
+    #toast{
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+      background:rgba(18,26,51,.95); border:1px solid var(--line);
+      backdrop-filter:blur(12px); border-radius:14px;
+      padding:12px 20px; font-size:13px; color:var(--text);
+      box-shadow:0 8px 32px rgba(0,0,0,.5); z-index:999;
+      opacity:0; transition:opacity .25s, transform .25s; pointer-events:none;
+      max-width:480px; text-align:center; white-space:pre-line;
+    }
+    #toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+    /* ── Footer ──────────────────────────── */
+    footer{
+      margin-top:16px; color:var(--muted); font-size:12px;
+      display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap;
+    }
+    .small{font-size:11px}
+
+    /* ── Responsive ──────────────────────── */
+    @media (max-width:1100px){
+      .grid{grid-template-columns:190px 1fr}
+    }
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr}
+      header{position:static}
+      nav{position:static; max-height:none; overflow:visible}
+      main{min-height:auto}
+      .row{grid-template-columns:1fr}
+      .actions{justify-content:flex-start}
+      .kv{grid-template-columns:1fr}
+    }
+    @media (max-width:600px){
+      .wrap{padding:12px}
+      .title b{font-size:13px}
+      header{gap:10px}
+    }
+  </style>
+</head>
+<body>
+  <div id="toast"></div>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div class="title">
+          <b>Signum KSS · 공공 사인 표준화 &amp; 설계/내역 자동화 (MVP 데모)</b>
+          <span>근거기반 RAG + 표준 산식(Deterministic) + Rule-set 규정점검 + Audit Log/HITL</span>
+        </div>
+      </div>
+      <div class="pill" id="demoPill" title="F2: 원클릭 실행">
+        <span class="dot"></span>
+        <span>Demo Ready</span>
+        <span class="kbd">F2</span>
+      </div>
+    </header>
+
+    <div class="grid">
+      <nav>
+        <div class="nav-head">
+          <h3>워크플로우</h3>
+          <p>입력 → RAG → BoQ → 규정점검 → 납품 + 감사로그</p>
+        </div>
+        <div class="nav-list" id="nav"></div>
+      </nav>
+
+      <main>
+        <div class="main-head">
+          <div>
+            <h2 id="pageTitle">프로젝트 대시보드</h2>
+            <p id="pageDesc">샘플 프로젝트로 엔드-투-엔드 흐름을 데모합니다.</p>
+          </div>
+          <div class="actions">
+            <div class="btn" id="btnLoadSample">📂 샘플 로드</div>
+            <div class="btn primary" id="btnRunFlow">⚡ 원클릭 실행</div>
+            <div class="btn danger" id="btnReset">↺ 초기화</div>
+          </div>
+        </div>
+
+        <div class="content" id="content"></div>
+      </main>
+    </div>
+
+    <footer>
+      <div>© Demo UI — 현장 시연용 Mock (네트워크/서버 없이 단일 HTML)</div>
+      <div class="small">팁: 왼쪽 메뉴 클릭 · <kbd class="kbd">F2</kbd> 원클릭 실행 · Audit Log에서 근거/검증 흐름 확인</div>
+    </footer>
+  </div>
+
+<script>
+/* ============================================================
+   Demo state
+   ============================================================ */
+const state = {
+  project: {
+    id: "PRJ-2026-GB-001",
+    name: "대구·경북 공공사인 정비(시범) — 중앙로 구간",
+    client: "○○시청 도시경관과",
+    region: "대구광역시",
+    year: "2026",
+    signType: "벽면형 간판",
+    purpose: "간판개선사업 제안/설계/내역 산출",
+  },
+  kss: {
+    location: "중앙로 123, 1층 외벽",
+    width_mm: 3000,
+    height_mm: 1500,
+    quantity: 1,
+    material: "알루미늄 복합패널 + 채널문자(LED)",
+    install: "벽부 고정(앵커) + 방수 실링",
+    notes: "현장 보행자 시야 확보 필요(돌출 최소화).",
+    protrusion_mm: 250,
+  },
+  kb: {
+    docs: [
+      { id:"KB-REG-2025-DG", title:"대구시 옥외광고물 가이드(요약)", type:"규정", year:2025 },
+      { id:"KB-SPEC-2024",   title:"공공사인 표준 시방/시공 기준(요약)", type:"시방", year:2024 },
+      { id:"KB-CASE-2023-17",title:"유사 제안서 사례 — 간판개선사업(요약)", type:"사례", year:2023 },
+    ],
+  },
+  pricingDb: {
+    version: "DBv0.9 (샘플)",
+    items: [
+      { code:"MAT-ACP-3T",  name:"알루미늄 복합패널 3T",     unit:"㎡", unitPrice:65000  },
+      { code:"MAT-LED-CH",  name:"LED 채널문자(기본)",        unit:"식", unitPrice:220000 },
+      { code:"LAB-INST",    name:"설치 노무(기본)",           unit:"식", unitPrice:180000 },
+      { code:"ETC-ANCH",    name:"앵커/부자재",               unit:"식", unitPrice:45000  },
+    ]
+  },
+  ruleSet: {
+    name: "대구/경북 대표 Rule-set (샘플 6개)",
+    rules: [
+      { id:"R01", title:"면적 상한",      level:"위반", when:"간판 면적 ≤ 4.0㎡",         clause:"대구 가이드 §3-2", check:(ctx)=> ctx.area_m2 <= 4.0,            hint:"면적을 줄이거나 분할형 적용" },
+      { id:"R02", title:"돌출 제한",      level:"주의", when:"도로/보행로 돌출 최소화",    clause:"대구 가이드 §3-5", check:(ctx)=> ctx.protrusion_mm <= 200,       hint:"돌출 200mm 이내 권장" },
+      { id:"R03", title:"조도/LED 눈부심",level:"주의", when:"야간 눈부심 저감",           clause:"시방 §5-1",        check:(ctx)=> ctx.ledDiffuser === true,      hint:"확산판/디밍 적용" },
+      { id:"R04", title:"재료 내후성",    level:"준수", when:"외장용 내후성 소재",         clause:"시방 §2-1",        check:(ctx)=> ["알루미늄","스테인리스","아크릴"].some(k=> ctx.material.includes(k)), hint:"내후성 소재 명시" },
+      { id:"R05", title:"고정/방수",      level:"준수", when:"고정/방수 처리 명시",        clause:"시방 §4-3",        check:(ctx)=> ctx.install.includes("방수") || ctx.install.includes("실링"), hint:"실링/방수 디테일 추가" },
+      { id:"R06", title:"문서 근거 태깅", level:"위반", when:"모든 핵심 문장에 출처 태그", clause:"RAG 품질게이트",    check:(ctx)=> ctx.citationsOk === true,      hint:"근거 없는 문장 생성 차단" },
+    ]
+  },
+  generated: {
+    proposal: null,
+    citationsOk: false,
+    boq: null,
+    ruleReport: null,
+    pdfReady: false,
+    hitlApproved: false,
+    template: null,
+    sessionRules: null,
+    ruleSetVersion: "DG-2026.03.05",
+    ruleSetTarget: "대구/경북 (샘플)",
+    ruleSetStatus: "DRAFT",
+  },
+  audit: []
+};
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+function now(){
+  const d=new Date(), p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+// [FIX] toast 메시지로 alert 대체 — alert은 데모 흐름을 끊음
+let toastTimer;
+function toast(msg, duration=2800){
+  const el = document.getElementById("toast");
+  if(!el) return;
+  clearTimeout(toastTimer);
+  el.textContent = msg;
+  el.classList.add("show");
+  toastTimer = setTimeout(()=> el.classList.remove("show"), duration);
+}
+
+function addAudit(type, message, meta={}){
+  state.audit.unshift({ t:now(), type, message, meta });
+  // [FIX] auditBox가 DOM에 없을 수도 있으므로 조건부 렌더
+  renderAuditBox();
+}
+
+function badgeByType(type){
+  if(type==="OK")   return `<span class="tag good">OK</span>`;
+  if(type==="WARN") return `<span class="tag warn">WARN</span>`;
+  if(type==="BLOCK")return `<span class="tag bad">BLOCK</span>`;
+  return `<span class="tag">INFO</span>`;
+}
+
+function money(n){
+  return new Intl.NumberFormat("ko-KR").format(Math.round(n))+"원";
+}
+
+function areaM2(w,h){ return (w/1000)*(h/1000); }
+
+function escapeHtml(str){
+  return String(str||"")
+    .replaceAll("&","&amp;").replaceAll("<","&lt;")
+    .replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+}
+
+/* ============================================================
+   Pages definition
+   ============================================================ */
+const pages = [
+  { id:"dashboard",   icon:"🏠", title:"프로젝트 대시보드",          desc:"진행상태, KPI 요약(샘플), 원클릭 시연",               render:renderDashboard   },
+  { id:"projects",    icon:"📚", title:"프로젝트 목록/검색",          desc:"프로젝트 생성/검색/선택 → KSS 입력으로 연결",          render:renderProjects    },
+  { id:"templates",   icon:"🧩", title:"템플릿 선택 · 미리보기",      desc:"제안서/내역/규정리포트 템플릿 선택 + 미리보기",          render:renderTemplates   },
+  { id:"kss",         icon:"🧾", title:"KSS 입력(표준 스키마)",       desc:"현장/규격/치수/수량/재료 등 표준 입력 구조",            render:renderKssForm     },
+  { id:"rag",         icon:"🧠", title:"근거기반 RAG 문서 생성",       desc:"근거 회수·인용, 무근거 문장 차단",                    render:renderRag         },
+  { id:"boq",         icon:"🧮", title:"표준 산식/내역(BoQ) 자동 산출",desc:"확정적(Deterministic) 계산 + Audit Log",             render:renderBoq         },
+  { id:"rules",       icon:"✅", title:"규정 Rule-set 자동 점검",      desc:"위반/주의 자동 리포트",                              render:renderRules       },
+  { id:"rules_admin", icon:"🛠️",title:"룰셋 관리(에디터)",            desc:"룰 버전/배포/검증 — 지자체 규정 업데이트 대응",          render:renderRulesAdmin  },
+  { id:"export",      icon:"📄", title:"납품 패키지(PDF) & HITL",     desc:"산출물 패키징 + 인간 검수(HITL) 승인 흐름",            render:renderExport      },
+  { id:"audit",       icon:"🧾", title:"Audit Log (감사추적)",         desc:"무엇을 근거로 어떤 검증을 거쳤는지 시간순 기록",         render:renderAuditPage   },
+  { id:"data_admin",  icon:"🗂️",title:"데이터/KB 관리",              desc:"규정 PDF · 템플릿 · 단가DB 버전 관리",                render:renderDataAdmin   },
+];
+
+let currentPageId = "dashboard";
+
+/* ============================================================
+   Core rendering
+   ============================================================ */
+function renderNav(){
+  const navEl = document.getElementById("nav");
+  navEl.innerHTML = pages.map(p=>`
+    <div class="nav-item${p.id===currentPageId?" active":""}" data-page="${p.id}">
+      <div class="nav-ic" aria-hidden="true">${p.icon}</div>
+      <div class="nav-txt">
+        <b>${p.title}</b>
+        <span>${p.desc}</span>
+      </div>
+    </div>
+  `).join("");
+  navEl.querySelectorAll(".nav-item").forEach(item=>{
+    item.addEventListener("click", ()=>{ currentPageId=item.dataset.page; paint(); });
+  });
+}
+
+function paint(){
+  renderNav();
+  const page = pages.find(p=>p.id===currentPageId);
+  document.getElementById("pageTitle").textContent = page.title;
+  document.getElementById("pageDesc").textContent  = page.desc;
+  document.getElementById("content").innerHTML = page.render();
+  bindPageHandlers();
+}
+
+/* ============================================================
+   Page: Dashboard
+   ============================================================ */
+function renderDashboard(){
+  const area       = areaM2(state.kss.width_mm, state.kss.height_mm);
+  const hasProposal= !!state.generated.proposal;
+  const hasBoq     = !!state.generated.boq;
+  const hasRules   = !!state.generated.ruleReport;
+  const ready      = state.generated.pdfReady && state.generated.hitlApproved;
+
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>프로젝트</h4>
+        <div class="divider"></div>
+        <div class="sub" style="display:grid; gap:8px">
+          <div><span class="tag">ID</span> <span class="mono">${state.project.id}</span></div>
+          <div><span class="tag">명칭</span> ${escapeHtml(state.project.name)}</div>
+          <div><span class="tag">발주</span> ${escapeHtml(state.project.client)}</div>
+          <div class="flex">
+            <span class="tag">지역</span> ${escapeHtml(state.project.region)}
+            <span class="tag">연도</span> ${escapeHtml(state.project.year)}
+            <span class="tag">유형</span> ${escapeHtml(state.project.signType)}
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="notice">
+          <b>데모 포인트</b><br/>
+          1) <span class="tag good">근거 포함</span> 문서 생성 → 2) <span class="tag good">확정 계산</span> 내역 산출
+          → 3) <span class="tag warn">규정 점검</span> 리포트 → 4) <span class="tag">Audit Log</span> 감사 대응
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>진행 상태</h4>
+        <table class="table">
+          <thead><tr><th>단계</th><th>상태</th><th>메모</th></tr></thead>
+          <tbody>
+            <tr><td>KSS 입력</td>
+                <td>${badgeByType("OK")} <span class="sub">준비</span></td>
+                <td class="sub">치수/수량/재료</td></tr>
+            <tr><td>근거기반 RAG</td>
+                <td>${hasProposal?badgeByType("OK"):badgeByType("WARN")} <span class="sub">${hasProposal?"생성됨":"미생성"}</span></td>
+                <td class="sub">${state.generated.citationsOk?"출처 태깅 통과":"출처 태깅 필요"}</td></tr>
+            <tr><td>내역(BoQ)</td>
+                <td>${hasBoq?badgeByType("OK"):badgeByType("WARN")} <span class="sub">${hasBoq?"산출됨":"미산출"}</span></td>
+                <td class="sub">면적 ${area.toFixed(2)}㎡</td></tr>
+            <tr><td>규정 점검</td>
+                <td>${hasRules?badgeByType("OK"):badgeByType("WARN")} <span class="sub">${hasRules?"리포트 생성":"미점검"}</span></td>
+                <td class="sub">Rule-set(샘플 6개)</td></tr>
+            <tr><td>납품 패키지</td>
+                <td>${ready?badgeByType("OK"):badgeByType("WARN")} <span class="sub">${ready?"완료":"대기"}</span></td>
+                <td class="sub">PDF(모의) + HITL</td></tr>
+          </tbody>
+        </table>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="goKss">KSS 입력 확인</div>
+          <div class="btn" id="goRun">⚡ 원클릭 실행</div>
+          <div class="btn" id="goAudit">Audit Log 보기</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <div class="card">
+        <h4>KPI(요약, 샘플)</h4>
+        <div class="sub">사업계획서 목표를 시각화한 <b>데모 지표</b>입니다.</div>
+        <div class="divider"></div>
+        <table class="table">
+          <thead><tr><th>지표</th><th>목표</th><th>현재(데모)</th></tr></thead>
+          <tbody>
+            <tr><td>근거 포함률</td><td>100%</td>
+                <td>${state.generated.citationsOk?'<span class="tag good">100%</span>':'<span class="tag warn">대기</span>'}</td></tr>
+            <tr><td>내역 재현성</td><td>95%+</td><td><span class="tag good">모의 99%</span></td></tr>
+            <tr><td>업무 시간 절감</td><td>30~40%</td><td><span class="tag good">모의 35%</span></td></tr>
+            <tr><td>규정 자동 점검</td><td>60개+</td><td><span class="tag warn">샘플 6개</span></td></tr>
+            <tr><td>내역 오차율</td><td>±10% 이내</td><td><span class="tag good">모의 ±5%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h4>KB(지식베이스) 연결(샘플)</h4>
+        <div class="sub">RAG가 참조하는 규정/시방/사례 문서 목록.</div>
+        <div class="divider"></div>
+        <table class="table">
+          <thead><tr><th>ID</th><th>문서</th><th>유형</th><th>연도</th></tr></thead>
+          <tbody>
+            ${state.kb.docs.map(d=>`
+              <tr>
+                <td class="mono nowrap">${escapeHtml(d.id)}</td>
+                <td>${escapeHtml(d.title)}</td>
+                <td><span class="tag">${escapeHtml(d.type)}</span></td>
+                <td class="nowrap">${d.year}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   Page: Projects
+   ============================================================ */
+function renderProjects(){
+  const list = [
+    { id:"PRJ-2026-GB-001", name:"대구·경북 공공사인 정비(시범) — 중앙로 구간",  org:"○○시청 도시경관과",              status:"진행", updated:"2026-03-05", tags:["간판개선","RAG","BoQ"]    },
+    { id:"PRJ-2026-GB-002", name:"관급 내역 자동산출 PoC — A업체",               org:"대구경북광고물제작공업협동조합",    status:"대기", updated:"2026-03-01", tags:["파일럿","KPI","검증"]     },
+    { id:"PRJ-2026-GB-003", name:"규정 룰셋(샘플) 고도화 — 1차",                 org:"내부",                           status:"완료", updated:"2026-02-20", tags:["Rule-set","감사로그"]  },
+  ];
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>프로젝트 검색</h4>
+        <div class="sub">"프로젝트 선택 → KSS 입력 → RAG/BoQ/규정점검" 흐름 시연 화면.</div>
+        <div class="divider"></div>
+        <label>검색</label>
+        <input id="p_query" placeholder="프로젝트명/ID/기관명 (예: 중앙로, PRJ-2026)" />
+        <div class="kv">
+          <div><label>상태</label>
+            <select id="p_status">
+              <option value="ALL">전체</option>
+              <option value="진행">진행</option>
+              <option value="대기">대기</option>
+              <option value="완료">완료</option>
+            </select>
+          </div>
+          <div><label>정렬</label>
+            <select id="p_sort">
+              <option value="updated_desc">최근 수정일 ↓</option>
+              <option value="name_asc">이름 ↑</option>
+              <option value="status_asc">상태 ↑</option>
+            </select>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnProjectSearch">검색</div>
+          <div class="btn" id="btnProjectNew">+ 새 프로젝트</div>
+          <div class="right sub">총 <span class="mono" id="p_count">${list.length}</span>건</div>
+        </div>
+        <div class="divider"></div>
+        <div id="project_table">${renderProjectTable(list)}</div>
+      </div>
+
+      <div class="card">
+        <h4>선택 프로젝트 상세</h4>
+        <div class="sub">목록에서 <b>열기</b>를 눌러주세요.</div>
+        <div class="divider"></div>
+        <div class="notice" id="project_detail">아직 선택된 프로젝트가 없습니다.</div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn" id="btnOpenKss" disabled>KSS 입력으로 이동</div>
+          <div class="btn" id="btnOpenAudit" disabled>Audit Log 보기</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderProjectTable(items){
+  return `
+    <table class="table">
+      <thead>
+        <tr>
+          <th style="width:110px">ID</th>
+          <th>프로젝트</th>
+          <th style="width:160px">기관</th>
+          <th style="width:60px">상태</th>
+          <th style="width:100px">수정일</th>
+          <th>태그</th>
+          <th style="width:60px">열기</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${items.map(p=>`
+          <tr>
+            <td class="mono nowrap">${escapeHtml(p.id)}</td>
+            <td>${escapeHtml(p.name)}</td>
+            <td class="sub">${escapeHtml(p.org)}</td>
+            <td>${p.status==="진행"?'<span class="tag good">진행</span>':p.status==="대기"?'<span class="tag warn">대기</span>':'<span class="tag">완료</span>'}</td>
+            <td class="mono nowrap">${p.updated}</td>
+            <td>${p.tags.map(t=>`<span class="tag">${escapeHtml(t)}</span>`).join(" ")}</td>
+            <td><div class="btn primary" data-open="${escapeHtml(p.id)}" style="padding:6px 10px">열기</div></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+/* ============================================================
+   Page: Templates
+   ============================================================ */
+function renderTemplates(){
+  const tpl          = state.generated.template || {};
+  const proposalReady= !!state.generated.proposal;
+  const boqReady     = !!state.generated.boq;
+  const rulesReady   = !!state.generated.ruleReport;
+
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>템플릿 선택</h4>
+        <div class="sub">HWP/PDF 렌더 엔진으로 템플릿을 채우는 흐름 — 여기서는 화면 미리보기로 대체.</div>
+        <div class="divider"></div>
+        <div class="kv">
+          <div><label>제안서 템플릿</label>
+            <select id="t_proposal">
+              <option value="TPL-PROP-01">공공 표준 제안서 v1 (요약형)</option>
+              <option value="TPL-PROP-02">간판개선 사업 제안서 v2 (상세형)</option>
+              <option value="TPL-PROP-03">협동조합 제출용 v1 (경량)</option>
+            </select>
+          </div>
+          <div><label>내역서(BoQ) 템플릿</label>
+            <select id="t_boq">
+              <option value="TPL-BOQ-01">표준 내역서 v1 (엑셀형)</option>
+              <option value="TPL-BOQ-02">관급 정산형 v1 (증빙 강조)</option>
+              <option value="TPL-BOQ-03">민간 견적형 v1 (요약)</option>
+            </select>
+          </div>
+        </div>
+        <div class="kv">
+          <div><label>규정점검 리포트 템플릿</label>
+            <select id="t_rules">
+              <option value="TPL-RULE-01">위반/주의 + 조항 표기 v1</option>
+              <option value="TPL-RULE-02">심의 제출용 v1 (표/그림 강조)</option>
+              <option value="TPL-RULE-03">감사 대응형 v1 (로그 강조)</option>
+            </select>
+          </div>
+          <div><label>출력 포맷</label>
+            <select id="t_format">
+              <option value="PDF">PDF</option>
+              <option value="HWP">HWP(모의)</option>
+            </select>
+          </div>
+        </div>
+        <div class="kv">
+          <div><label>테마</label>
+            <select id="t_theme">
+              <option value="BLUE">블루(기본)</option>
+              <option value="GRAY">그레이(관급)</option>
+              <option value="DARK">다크(시연용)</option>
+            </select>
+          </div>
+          <div><label>렌더 모드</label>
+            <select id="t_mode">
+              <option value="SUMMARY">요약 렌더</option>
+              <option value="FULL">상세 렌더</option>
+            </select>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="notice">
+          <b>현재 준비 상태</b><br/>
+          제안서: ${proposalReady?'<span class="tag good">READY</span>':'<span class="tag warn">PENDING</span>'}
+          · BoQ: ${boqReady?'<span class="tag good">READY</span>':'<span class="tag warn">PENDING</span>'}
+          · 규정리포트: ${rulesReady?'<span class="tag good">READY</span>':'<span class="tag warn">PENDING</span>'}
+          · 출처태깅: ${state.generated.citationsOk?'<span class="tag good">ON</span>':'<span class="tag bad">OFF</span>'}
+        </div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnSaveTemplate">선택 저장</div>
+          <div class="btn" id="btnPreviewDoc">미리보기 생성</div>
+          <div class="btn" id="btnGoExport">납품 패키지로 →</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>문서 렌더 미리보기(모의)</h4>
+        <div class="sub">선택한 템플릿 + 데이터로 생성된 문서 화면 미리보기.</div>
+        <div class="divider"></div>
+        <div id="docPreview">${renderDocPreviewSkeleton()}</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDocPreviewSkeleton(){
+  return `
+    <div class="sub">아직 미리보기가 없습니다. 왼쪽에서 <b>미리보기 생성</b>을 눌러주세요.</div>
+    <div class="divider"></div>
+    <div class="notice">
+      <b>미리보기 활용 팁</b><br/>
+      "템플릿 선택 → 문서가 자동으로 채워짐"을 직관적으로 보여줍니다.<br/>
+      제안서/내역/규정리포트를 하나의 패키지로 뽑는 흐름을 강조하세요.
+    </div>
+  `;
+}
+
+function buildDocPreview({format, mode, theme}){
+  const b    = state.generated.boq;
+  const rr   = state.generated.ruleReport;
+  const area = areaM2(state.kss.width_mm, state.kss.height_mm).toFixed(2);
+  const themeTag = theme==="GRAY"?"관급":theme==="DARK"?"시연":"기본";
+  const fmt  = format||"PDF";
+  const level= mode||"SUMMARY";
+
+  const sectionProposal = `
+    <div class="divider"></div>
+    <h4 style="margin:0 0 8px">[제안서] 핵심 요약</h4>
+    <div class="sub">
+      대상: ${escapeHtml(state.kss.location)}<br/>
+      규격: <span class="mono">${state.kss.width_mm}×${state.kss.height_mm}mm</span> (면적 <span class="mono">${area}㎡</span>) / 수량 <span class="mono">${state.kss.quantity}EA</span><br/>
+      구성: ${escapeHtml(state.kss.material)}<br/>
+      근거태깅: ${state.generated.citationsOk?'<span class="tag good">ON</span>':'<span class="tag bad">OFF</span>'}
+    </div>
+    ${level==="FULL" && state.generated.proposal ? `
+      <div class="divider"></div>
+      <textarea class="mono" style="min-height:220px" readonly>${escapeHtml(state.generated.proposal)}</textarea>
+    ` : `<div class="divider"></div><div class="sub">※ 본문은 "상세 렌더"에서 표시</div>`}
+  `;
+
+  const sectionBoq = `
+    <div class="divider"></div>
+    <h4 style="margin:0 0 8px">[내역서(BoQ)] 요약</h4>
+    ${b ? `
+      <table class="table">
+        <thead><tr><th>항목</th><th>금액</th><th>비고</th></tr></thead>
+        <tbody>
+          <tr><td>소계</td><td class="mono nowrap"><b>${money(b.subtotal)}</b></td><td class="sub">DB: ${escapeHtml(b.dbVersion)}</td></tr>
+          <tr><td>간접/일반경비(10%)</td><td class="mono nowrap"><b>${money(b.overhead)}</b></td><td class="sub">정책값</td></tr>
+          <tr><td>총계</td><td class="mono nowrap"><b>${money(b.total)}</b></td><td class="sub">확정 산식</td></tr>
+        </tbody>
+      </table>
+      ${level==="FULL"?`<div class="divider"></div>${renderBoqTable()}`:""}
+    ` : `<div class="sub">BoQ가 없습니다. BoQ 페이지에서 산출 후 다시 시도하세요.</div>`}
+  `;
+
+  const sectionRules = `
+    <div class="divider"></div>
+    <h4 style="margin:0 0 8px">[규정점검] 결과 요약</h4>
+    ${rr ? `
+      <div class="flex">
+        <span class="tag bad">BLOCK ${rr.blocks.length}</span>
+        <span class="tag warn">WARN ${rr.warns.length}</span>
+        <span class="tag good">OK ${rr.oks.length}</span>
+        <span class="right sub">${escapeHtml(state.ruleSet.name)}</span>
+      </div>
+      <div class="divider"></div>
+      ${renderRulesReport()}
+    ` : `<div class="sub">규정점검 결과가 없습니다. 규정 점검 페이지 실행 후 다시 시도하세요.</div>`}
+  `;
+
+  return `
+    <div class="notice">
+      <b>${fmt} 렌더 미리보기 (${level==="FULL"?"상세":"요약"} · ${themeTag} 테마)</b><br/>
+      <span class="sub">${escapeHtml(state.project.name)} / ${escapeHtml(state.project.client)}</span>
+    </div>
+    ${sectionProposal}${sectionBoq}${sectionRules}
+    <div class="divider"></div>
+    <div class="sub">
+      <b>패키지 구성(모의)</b>: 제안서.${fmt.toLowerCase()} · 내역서.xlsx · 규정점검.${fmt.toLowerCase()} · AuditLog.json
+    </div>
+  `;
+}
+
+/* ============================================================
+   Page: Data Admin
+   ============================================================ */
+function renderDataAdmin(){
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>규정 / 시방 / 사례 문서(KB)</h4>
+        <div class="sub">RAG가 참조하는 지식베이스 문서 목록.</div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnAddDoc">+ 문서 추가</div>
+          <div class="right sub">총 ${state.kb.docs.length}개</div>
+        </div>
+        <div class="divider"></div>
+        <table class="table">
+          <thead><tr><th>ID</th><th>문서</th><th>유형</th><th>연도</th><th>삭제</th></tr></thead>
+          <tbody>
+            ${state.kb.docs.map(d=>`
+              <tr>
+                <td class="mono nowrap">${escapeHtml(d.id)}</td>
+                <td>${escapeHtml(d.title)}</td>
+                <td><span class="tag">${escapeHtml(d.type)}</span></td>
+                <td class="nowrap">${d.year}</td>
+                <td><div class="btn danger" data-del-doc="${escapeHtml(d.id)}" style="padding:6px 10px">삭제</div></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h4>표준 품목 / 단가 DB</h4>
+        <div class="sub">내역(BoQ) 산출 시 사용. 버전: <span class="mono">${escapeHtml(state.pricingDb.version)}</span></div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnAddItem">+ 품목 추가</div>
+          <div class="btn" id="btnBumpVersion">버전 업데이트</div>
+        </div>
+        <div class="divider"></div>
+        <table class="table">
+          <thead><tr><th>코드</th><th>품목</th><th>단위</th><th>단가</th><th>삭제</th></tr></thead>
+          <tbody>
+            ${state.pricingDb.items.map(it=>`
+              <tr>
+                <td class="mono nowrap">${escapeHtml(it.code)}</td>
+                <td>${escapeHtml(it.name)}</td>
+                <td class="nowrap">${it.unit}</td>
+                <td class="mono nowrap">${money(it.unitPrice)}</td>
+                <td><div class="btn danger" data-del-item="${escapeHtml(it.code)}" style="padding:6px 10px">삭제</div></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="card">
+      <h4>운영 포인트(회의용)</h4>
+      <div class="notice">
+        • 규정 PDF / 시방서 / 사례 문서를 업로드하면 RAG 검색 대상에 자동 추가됩니다.<br/>
+        • 단가 DB는 버전 관리되어 Audit Log에 기록됩니다.<br/>
+        • 특정 시점의 단가/룰/문서 버전으로 결과 재현이 가능합니다.
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   Page: Rules Admin
+   ============================================================ */
+function renderRulesAdmin(){
+  if(!state.generated.sessionRules){
+    state.generated.sessionRules = JSON.parse(JSON.stringify(state.ruleSet.rules));
+  }
+  const rules = state.generated.sessionRules;
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>룰셋 메타정보</h4>
+        <div class="sub">규정 업데이트 시: <b>버전 생성 → 검증 → 배포</b> 흐름으로 운영(샘플).</div>
+        <div class="divider"></div>
+        <div class="kv">
+          <div><label>적용 대상</label>
+            <input id="ra_target" value="${escapeHtml(state.generated.ruleSetTarget)}" /></div>
+          <div><label>룰셋 버전</label>
+            <input id="ra_version" value="${escapeHtml(state.generated.ruleSetVersion)}" /></div>
+        </div>
+        <div class="kv">
+          <div><label>상태</label>
+            <select id="ra_status">
+              <option value="DRAFT"${state.generated.ruleSetStatus==="DRAFT"?" selected":""}>DRAFT (편집 중)</option>
+              <option value="PUBLISHED"${state.generated.ruleSetStatus==="PUBLISHED"?" selected":""}>PUBLISHED (배포됨)</option>
+            </select>
+          </div>
+          <div><label>변경 사유(릴리즈 노트)</label>
+            <input id="ra_note" placeholder="예: 2026.03 개정 조례 반영" /></div>
+        </div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnRaSaveMeta">메타 저장</div>
+          <div class="btn" id="btnRaAddRule">+ 룰 추가</div>
+          <div class="btn" id="btnRaValidate">룰셋 검증</div>
+          <div class="btn" id="btnRaPublish">배포(Publish)</div>
+          <div class="right sub">총 <span id="ra_count">${rules.length}</span>개</div>
+        </div>
+        <div class="divider"></div>
+        <div class="notice" id="ra_gate">
+          <b>배포 게이트(샘플)</b><br/>
+          - 룰 ID 중복 금지 · 조건/조항/힌트 누락 금지<br/>
+          - "문서 근거 태깅" 같은 품질 룰 반드시 포함(R06 예시)
+        </div>
+      </div>
+
+      <div class="card" style="overflow:auto">
+        <h4>룰 목록(에디터)</h4>
+        <div class="sub">편집하고 샘플 KSS로 즉시 테스트 가능.</div>
+        <div class="divider"></div>
+        <div id="ra_rules">${renderRulesEditor(rules)}</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="row">
+      <div class="card">
+        <h4>샘플 데이터로 즉시 테스트</h4>
+        <div class="sub">편집한 룰셋을 바로 적용해 위반/주의/통과 확인.</div>
+        <div class="divider"></div>
+        <div class="kv">
+          <div><label>면적 상한(㎡)</label>
+            <input type="number" id="ra_test_area_limit" value="4.0" step="0.1" /></div>
+          <div><label>돌출(mm)</label>
+            <input type="number" id="ra_test_protrusion" value="250" /></div>
+        </div>
+        <div class="kv">
+          <div><label>LED 확산/디밍</label>
+            <select id="ra_test_led">
+              <option value="true">적용</option>
+              <option value="false">미적용</option>
+            </select>
+          </div>
+          <div><label>출처 태그</label>
+            <select id="ra_test_cite">
+              <option value="true">ON</option>
+              <option value="false">OFF</option>
+            </select>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnRaRunTest">테스트 실행</div>
+          <div class="btn" id="btnRaPushToRuntime">런타임에 적용</div>
+          <div class="right sub">※ 적용 시 "규정 점검" 페이지에 즉시 반영</div>
+        </div>
+        <div class="divider"></div>
+        <div id="ra_test_result" class="sub">아직 테스트하지 않았습니다.</div>
+      </div>
+
+      <div class="card">
+        <h4>운영 관점(회의용)</h4>
+        <div class="notice">
+          <b>규정 업데이트 대응</b><br/>
+          룰셋은 버전 관리(개정 이력) → 검증(게이트) → 배포(Publish) → 현장 실증 흐름으로 운영됩니다.<br/>
+          감사/민원 대응 시, 특정 시점의 룰셋 버전으로 산출된 결과를 재현할 수 있습니다.
+        </div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn" id="btnRaGoRules">규정 점검 화면으로</div>
+          <div class="btn" id="btnRaGoAudit">Audit Log 보기</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderRulesEditor(rules){
+  return rules.map((r,idx)=>`
+    <div class="card" style="margin-bottom:12px">
+      <div class="flex">
+        <h4 style="margin:0">${escapeHtml(r.id)} · ${escapeHtml(r.title)}</h4>
+        <div class="right flex">
+          <span class="tag">${escapeHtml(r.level)}</span>
+          <div class="btn danger" data-del="${idx}" style="padding:6px 10px">삭제</div>
+        </div>
+      </div>
+      <div class="divider"></div>
+      <div class="kv">
+        <div><label>룰 ID</label>
+          <input data-field="id" data-idx="${idx}" value="${escapeHtml(r.id)}" /></div>
+        <div><label>제목</label>
+          <input data-field="title" data-idx="${idx}" value="${escapeHtml(r.title)}" /></div>
+      </div>
+      <div class="kv">
+        <div><label>레벨</label>
+          <select data-field="level" data-idx="${idx}">
+            <option value="위반"${r.level==="위반"?" selected":""}>위반</option>
+            <option value="주의"${r.level==="주의"?" selected":""}>주의</option>
+            <option value="준수"${r.level==="준수"?" selected":""}>준수</option>
+          </select>
+        </div>
+        <div><label>근거 조항</label>
+          <input data-field="clause" data-idx="${idx}" value="${escapeHtml(r.clause||"")}" /></div>
+      </div>
+      <label>조건 설명</label>
+      <input data-field="when" data-idx="${idx}" value="${escapeHtml(r.when||"")}" />
+      <label>권고(미준수 시)</label>
+      <input data-field="hint" data-idx="${idx}" value="${escapeHtml(r.hint||"")}" />
+      <div class="divider"></div>
+      <div class="sub"><span class="tag">체크 로직</span> R01(면적)/R02(돌출)/R03(LED)/R06(출처태깅)만 테스트 동작. 나머지는 항상 준수 처리.</div>
+    </div>
+  `).join("");
+}
+
+/* ============================================================
+   Page: KSS Form
+   ============================================================ */
+function renderKssForm(){
+  const k = state.kss;
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>KSS Feature Schema 입력</h4>
+        <div class="sub">현장/발주/규격 정보를 "문서·견적 가능한 정형 구조"로 표준화.</div>
+        <label>설치 위치</label>
+        <input id="k_location" value="${escapeHtml(k.location)}" />
+        <div class="kv">
+          <div><label>가로(mm)</label>
+            <input type="number" id="k_width" value="${k.width_mm}" /></div>
+          <div><label>세로(mm)</label>
+            <input type="number" id="k_height" value="${k.height_mm}" /></div>
+        </div>
+        <div class="kv">
+          <div><label>수량</label>
+            <input type="number" id="k_qty" value="${k.quantity}" /></div>
+          <div><label>돌출(mm)</label>
+            <input type="number" id="k_protrusion" value="${k.protrusion_mm}" /></div>
+        </div>
+        <label>재료/구성</label>
+        <input id="k_material" value="${escapeHtml(k.material)}" />
+        <label>설치/시공 메모</label>
+        <input id="k_install" value="${escapeHtml(k.install)}" />
+        <label>특이사항</label>
+        <textarea id="k_notes">${escapeHtml(k.notes)}</textarea>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnSaveKss">💾 저장</div>
+          <div class="btn" id="btnToRag">다음: RAG 생성 →</div>
+          <div class="right sub">면적: <span class="mono" id="k_area">${areaM2(k.width_mm,k.height_mm).toFixed(2)}</span>㎡</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>입력 검증(샘플)</h4>
+        <div class="sub">형식/범위 검증 + 규정 룰체크 입력으로 연결.</div>
+        <div class="divider"></div>
+        <div id="k_validation" class="notice">
+          현재 입력값은 샘플 기준으로 유효합니다. "저장"하면 Audit Log에 기록됩니다.
+        </div>
+        <div class="divider"></div>
+        <h4>표준 품목/단가 DB</h4>
+        <div class="sub">버전: <span class="mono">${escapeHtml(state.pricingDb.version)}</span></div>
+        <div class="divider"></div>
+        <table class="table">
+          <thead><tr><th>코드</th><th>품목</th><th>단위</th><th>단가</th></tr></thead>
+          <tbody>
+            ${state.pricingDb.items.map(it=>`
+              <tr>
+                <td class="mono nowrap">${escapeHtml(it.code)}</td>
+                <td>${escapeHtml(it.name)}</td>
+                <td class="nowrap">${it.unit}</td>
+                <td class="mono nowrap">${money(it.unitPrice)}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   Page: RAG
+   ============================================================ */
+function renderRag(){
+  const has = !!state.generated.proposal;
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>검색(유사도) → 근거 기반 생성</h4>
+        <div class="sub">규정/시방/사례 문서에서 근거를 회수하고, "근거 없는 문장"은 차단하는 흐름 데모.</div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnRagSearch">🔍 근거 검색</div>
+          <div class="btn primary" id="btnRagGenerate">✍ 제안서 초안 생성</div>
+          <div class="btn" id="btnRagToggleCite">
+            출처 태그: ${state.generated.citationsOk?'<span class="tag good">ON</span>':'<span class="tag bad">OFF</span>'}
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="sub">품질게이트: ${state.generated.citationsOk?'<span class="tag good">통과</span>':'<span class="tag bad">차단 가능</span>'}</div>
+        <div class="divider"></div>
+        <h4>회수된 근거(샘플)</h4>
+        <table class="table">
+          <thead><tr><th>근거</th><th>스니펫</th><th>출처 태그</th></tr></thead>
+          <tbody id="rag_sources">${renderRagSources()}</tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h4>제안서 초안(샘플 출력)</h4>
+        <div class="sub">실제 서비스에서는 DOCX/PDF 템플릿으로 렌더링되는 영역.</div>
+        <div class="divider"></div>
+        <div class="notice" id="rag_gate">${renderRagGateMessage()}</div>
+        <div class="divider"></div>
+        <textarea id="rag_output" class="mono" style="min-height:320px" readonly>${has?escapeHtml(state.generated.proposal):""}</textarea>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn" id="btnToBoq">다음: BoQ 산출 →</div>
+          <div class="btn" id="btnToRules">다음: 규정 점검 →</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderRagSources(){
+  const citeOn = state.generated.citationsOk;
+  return [
+    { name:"가이드/규정 준수",  snippet:"간판 면적, 돌출, 조도/눈부심 저감 등 핵심 요건을 준수해야 함.", src:`[참조: ${state.kb.docs[0].id} p.12]` },
+    { name:"시방/시공 디테일",  snippet:"고정(앵커)과 방수(실링) 디테일을 문서에 명확히 기술.",        src:`[참조: ${state.kb.docs[1].id} p.5]`  },
+    { name:"유사 사례 구성",    snippet:"사업 개요 → 현장 현황 → 개선안 → 내역/금액 → 기대효과 순.", src:`[참조: ${state.kb.docs[2].id} p.3]`  },
+  ].map(r=>`
+    <tr>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.snippet)}</td>
+      <td>${citeOn?`<span class="mono">${escapeHtml(r.src)}</span>`:'<span class="tag bad">태그 없음</span>'}</td>
+    </tr>
+  `).join("");
+}
+
+function renderRagGateMessage(){
+  if(!state.generated.citationsOk){
+    return `<b>품질게이트: 차단 모드</b><br/>출처 태그가 OFF — 근거 없는 문장 생성이 발생할 수 있습니다.<br/>
+      <span class="tag bad">정책:</span> 핵심 섹션은 무근거 시 공란/차단 처리(데모에서는 경고만 표시).`;
+  }
+  return `<b>품질게이트: 통과</b><br/>모든 핵심 문장에 출처 태그가 포함됩니다. <span class="tag good">근거 포함</span>`;
+}
+
+function makeProposalText(){
+  const k    = state.kss;
+  const area = areaM2(k.width_mm, k.height_mm).toFixed(2);
+  const [dA,dB,dC] = state.kb.docs;
+  const citeA= `[참조:${dA.id} p.12]`, citeB=`[참조:${dB.id} p.5]`, citeC=`[참조:${dC.id} p.3]`;
+  const C    = (t,tag)=> state.generated.citationsOk ? `${t} ${tag}` : t;
+
+  return [
+    "[1] 사업 개요",
+    C(`- 본 과업은 공공사인 정비 사업의 제안/설계/내역 산출을 표준화하여 산출물 품질과 감사 대응력을 높이는 것을 목표로 한다.`, citeC),
+    "",
+    "[2] 대상 및 현장 정보(KSS)",
+    `- 설치 위치: ${k.location}`,
+    `- 유형/구성: ${k.material}`,
+    `- 규격: ${k.width_mm}mm × ${k.height_mm}mm (면적 ${area}㎡), 수량 ${k.quantity}EA`,
+    C(`- 핵심 준수사항: 면적/돌출/조도 등 가이드 기준을 준수하며, 위반 소지가 있는 항목은 사전 점검한다.`, citeA),
+    "",
+    "[3] 개선안(요약)",
+    C(`- 표준 시방에 따라 고정(앵커) 및 방수(실링) 처리를 명시하여 안전성과 유지관리성을 확보한다.`, citeB),
+    C(`- 야간 시인성은 확보하되 눈부심 저감(확산/디밍) 적용을 권장한다.`, citeA),
+    "",
+    "[4] 내역 산출 및 산출 근거(요약)",
+    `- 본 문서의 내역은 표준 품목/단가 DB와 확정적 산식(Deterministic) 계산으로 산출된다.`,
+    `- 산출 결과는 BoQ 및 Audit Log로 제공된다.`,
+    "",
+    "[5] 결론 및 기대효과",
+    C(`- 표준 산출 체계를 통해 재현성과 일관성을 확보하고, 근거 태깅과 로그로 감사 대응력을 강화한다.`, citeC),
+  ].join("\n");
+}
+
+/* ============================================================
+   Page: BoQ
+   ============================================================ */
+function renderBoq(){
+  const area  = areaM2(state.kss.width_mm, state.kss.height_mm);
+  const hasBoq= !!state.generated.boq;
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>입력 → 물량 → 금액(확정 계산)</h4>
+        <div class="sub">LLM 추론이 아닌 "확정적 알고리즘"으로 계산. 동일 입력 = 동일 결과.</div>
+        <div class="divider"></div>
+        <div class="kv">
+          <div class="notice">
+            <b>입력 요약</b><br/>
+            면적: <span class="mono">${area.toFixed(2)}㎡</span>, 수량: <span class="mono">${state.kss.quantity}EA</span><br/>
+            단가 DB: <span class="mono">${escapeHtml(state.pricingDb.version)}</span>
+          </div>
+          <div class="notice">
+            <b>산식(샘플)</b><br/>
+            패널(㎡) = 면적 × 수량<br/>
+            채널문자/노무/부자재 = 식(기본) × 수량
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnCalcBoq">🧮 내역 산출</div>
+          <div class="btn" id="btnReplayBoq">재현성 테스트</div>
+          <div class="right sub">재현성: <span class="tag good">모의 99%</span></div>
+        </div>
+        <div class="divider"></div>
+        <h4>BoQ(샘플)</h4>
+        <div id="boq_table">
+          ${hasBoq ? renderBoqTable() : `<div class="sub">아직 산출되지 않았습니다. "내역 산출"을 눌러주세요.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>산출 근거 로그</h4>
+        <div class="sub">계산에 사용된 입력/버전/산식 로그 → 감사추적 가능.</div>
+        <div class="divider"></div>
+        <textarea class="mono" id="boq_log" style="min-height:380px" readonly>${renderBoqLog()}</textarea>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn" id="btnToRulesFromBoq">다음: 규정 점검 →</div>
+          <div class="btn" id="btnToExportFromBoq">다음: 납품 패키지 →</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function computeBoq(){
+  const area = areaM2(state.kss.width_mm, state.kss.height_mm);
+  const qty  = Number(state.kss.quantity || 0);
+  const db   = state.pricingDb.items;
+  const find = code => db.find(x=>x.code===code);
+  const panel= find("MAT-ACP-3T"), led=find("MAT-LED-CH"), lab=find("LAB-INST"), anch=find("ETC-ANCH");
+
+  const rows = [
+    { ...panel, qty:area*qty, formula:`면적(${area.toFixed(2)})×수량(${qty})` },
+    { ...led,   qty:1*qty,    formula:`기본(1)×수량(${qty})` },
+    { ...lab,   qty:1*qty,    formula:`기본(1)×수량(${qty})` },
+    { ...anch,  qty:1*qty,    formula:`기본(1)×수량(${qty})` },
+  ].map(r=>({...r, amount:r.qty*r.unitPrice}));
+
+  const subtotal = rows.reduce((s,r)=>s+r.amount, 0);
+  const overhead = subtotal * 0.10;
+  const total    = subtotal + overhead;
+  // [FIX] boq 저장 시 계산 시각도 기록해 재현 로그에 활용
+  state.generated.boq = { rows, subtotal, overhead, total, dbVersion:state.pricingDb.version, calcAt:now() };
+  addAudit("OK","BoQ 산출 완료(확정 계산)", { area_m2:area.toFixed(2), qty, db:state.pricingDb.version });
+}
+
+function renderBoqTable(){
+  const b = state.generated.boq;
+  if(!b) return "";
+  return `
+    <table class="table">
+      <thead>
+        <tr><th>코드</th><th>품목</th><th>단위</th><th>물량</th><th>단가</th><th>금액</th><th>산식</th></tr>
+      </thead>
+      <tbody>
+        ${b.rows.map(r=>`
+          <tr>
+            <td class="mono nowrap">${escapeHtml(r.code)}</td>
+            <td>${escapeHtml(r.name)}</td>
+            <td class="nowrap">${r.unit}</td>
+            <td class="mono nowrap">${r.qty.toFixed(r.unit==="㎡"?2:0)}</td>
+            <td class="mono nowrap">${money(r.unitPrice)}</td>
+            <td class="mono nowrap">${money(r.amount)}</td>
+            <td class="mono">${escapeHtml(r.formula)}</td>
+          </tr>
+        `).join("")}
+        <tr><td colspan="5"><b>소계</b></td><td class="mono nowrap"><b>${money(b.subtotal)}</b></td><td class="sub">—</td></tr>
+        <tr><td colspan="5"><b>간접/일반경비(10%, 샘플)</b></td><td class="mono nowrap"><b>${money(b.overhead)}</b></td><td class="sub">—</td></tr>
+        <tr><td colspan="5"><b>총계</b></td><td class="mono nowrap"><b>${money(b.total)}</b></td><td class="sub">DB: ${escapeHtml(b.dbVersion)}</td></tr>
+      </tbody>
+    </table>
+  `;
+}
+
+function renderBoqLog(){
+  const b    = state.generated.boq;
+  const area = areaM2(state.kss.width_mm, state.kss.height_mm);
+  if(!b) return [
+    "아직 산출 로그가 없습니다.",
+    "",
+    "• 내역 산출을 실행하면:",
+    "  - 입력 파라미터(치수/수량/재질)",
+    "  - 단가DB 버전",
+    "  - 적용 산식",
+    "  - 결과(BoQ) 가 기록됩니다."
+  ].join("\n");
+  // [FIX] calcAt 사용 — 재현 시 now()가 달라지는 문제 방지
+  return [
+    "=== Audit / Calculation Log (샘플) ===",
+    `산출 시각: ${b.calcAt}`,
+    `프로젝트: ${state.project.id} / ${state.project.name}`,
+    "",
+    "[입력 파라미터]",
+    `- width_mm:  ${state.kss.width_mm}`,
+    `- height_mm: ${state.kss.height_mm}`,
+    `- area_m2:   ${area.toFixed(2)}`,
+    `- quantity:  ${state.kss.quantity}`,
+    `- material:  ${state.kss.material}`,
+    "",
+    "[단가 DB]",
+    `- version: ${b.dbVersion}`,
+    "",
+    "[적용 산식]",
+    ...b.rows.map(r=>`- ${r.code}: ${r.formula} -> qty=${r.qty.toFixed(r.unit==="㎡"?2:0)} ${r.unit}`),
+    "",
+    "[결과]",
+    `- subtotal:        ${money(b.subtotal)}`,
+    `- overhead(10%):   ${money(b.overhead)}`,
+    `- total:           ${money(b.total)}`,
+    "",
+    "※ 동일 입력/동일 DB 버전이면 결과가 동일(재현성)"
+  ].join("\n");
+}
+
+/* ============================================================
+   Page: Rules
+   ============================================================ */
+function renderRules(){
+  const has = !!state.generated.ruleReport;
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>Rule-set 자동 점검</h4>
+        <div class="sub">KSS 입력 + 산출 결과를 기반으로 위반/주의 항목을 자동 리포트로 생성.</div>
+        <div class="divider"></div>
+        <div class="kv">
+          <div><label>돌출(mm)</label>
+            <input type="number" id="r_protrusion" value="${state.kss.protrusion_mm||250}" /></div>
+          <div><label>LED 확산/디밍 적용</label>
+            <select id="r_led">
+              <option value="true">적용</option>
+              <option value="false">미적용</option>
+            </select>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnRunRules">✅ 규정 점검 실행</div>
+          <div class="btn" id="btnFixCiteAndRerun">출처 태그 ON + 재점검</div>
+          <div class="right sub"><span class="mono" style="font-size:11px">${escapeHtml(state.ruleSet.name)}</span></div>
+        </div>
+        <div class="divider"></div>
+        <h4>리포트</h4>
+        <div id="rules_report">
+          ${has ? renderRulesReport() : `<div class="sub">아직 점검하지 않았습니다. "규정 점검 실행"을 눌러주세요.</div>`}
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>해석/권고</h4>
+        <div class="notice">
+          <b>회의에서 강조할 포인트</b><br/>
+          - 위반이면 바로 리포트 + 근거조항 표시<br/>
+          - 문서 근거 태깅이 OFF면 생성/납품을 차단(BLOCK)<br/>
+          - 수정 후 재점검 → 통과 로그가 남음
+        </div>
+        <div class="divider"></div>
+        <h4>다음 단계</h4>
+        <div class="flex">
+          <div class="btn" id="btnToExport">납품 패키지로 →</div>
+          <div class="btn" id="btnToAudit">Audit Log 보기</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function runRules(ctx){
+  const results = state.ruleSet.rules.map(r=>{
+    let ok = false;
+    try { ok = !!r.check(ctx); } catch(e){ ok=false; }
+    const status = ok ? "OK" : (r.level==="주의" ? "WARN" : r.level==="준수" ? "WARN" : "BLOCK");
+    return {...r, ok, status, label: ok?"준수":r.level};
+  });
+  const blocks = results.filter(x=>x.status==="BLOCK");
+  const warns  = results.filter(x=>x.status==="WARN");
+  const oks    = results.filter(x=>x.status==="OK");
+  state.generated.ruleReport = { normalized:results, blocks, warns, oks, ctx };
+  addAudit(blocks.length?"BLOCK":warns.length?"WARN":"OK",
+    `Rule-set 점검 완료 — BLOCK:${blocks.length}, WARN:${warns.length}, OK:${oks.length}`,
+    { rules:results.length, blocks:blocks.map(b=>b.id) }
+  );
+}
+
+function renderRulesReport(){
+  const rr = state.generated.ruleReport;
+  if(!rr) return "";
+  return `
+    <table class="table">
+      <thead><tr><th>룰</th><th>결과</th><th>조건/근거조항</th><th>권고</th></tr></thead>
+      <tbody>
+        ${rr.normalized.map(r=>`
+          <tr>
+            <td class="nowrap"><b>${escapeHtml(r.id)}</b> · ${escapeHtml(r.title)}</td>
+            <td>${badgeByType(r.status)} <span class="sub">${escapeHtml(r.label)}</span></td>
+            <td><span class="sub">${escapeHtml(r.when)}</span><br/><span class="mono" style="font-size:11px">${escapeHtml(r.clause)}</span></td>
+            <td class="sub">${r.ok?"—":escapeHtml(r.hint)}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+/* ============================================================
+   Page: Export / HITL
+   ============================================================ */
+function renderExport(){
+  const ready    = state.generated.pdfReady;
+  const approved = state.generated.hitlApproved;
+  const status   = approved && ready ? "OK" : "WARN";
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>납품 패키지 생성(샘플)</h4>
+        <div class="sub">실제 시스템에서는 템플릿 렌더링(DOCX/PDF/HWP 변환)으로 산출물 생성.</div>
+        <div class="divider"></div>
+        <div class="notice">
+          <b>현재 상태</b><br/>
+          제안서: ${state.generated.proposal?'<span class="tag good">준비</span>':'<span class="tag warn">미생성</span>'}
+          · BoQ: ${state.generated.boq?'<span class="tag good">준비</span>':'<span class="tag warn">미산출</span>'}
+          · 규정점검: ${state.generated.ruleReport?'<span class="tag good">준비</span>':'<span class="tag warn">미점검</span>'}
+          · 출처태깅: ${state.generated.citationsOk?'<span class="tag good">ON</span>':'<span class="tag bad">OFF</span>'}
+        </div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn primary" id="btnMakePackage">📦 납품 패키지 만들기</div>
+          <div class="btn" id="btnHITLApprove">✔ HITL 승인</div>
+          <div class="right sub">${badgeByType(status)} ${approved&&ready?"납품 가능":"검토 필요"}</div>
+        </div>
+        <div class="divider"></div>
+        <table class="table">
+          <thead><tr><th>파일</th><th>설명</th><th>상태</th></tr></thead>
+          <tbody>
+            <tr><td class="mono nowrap">제안서_초안.pdf</td>
+                <td class="sub">근거 태깅 포함 제안서(모의)</td>
+                <td>${state.generated.proposal?'<span class="tag good">READY</span>':'<span class="tag warn">PENDING</span>'}</td></tr>
+            <tr><td class="mono nowrap">BoQ_내역서.xlsx</td>
+                <td class="sub">표준 산식 기반 내역서(모의)</td>
+                <td>${state.generated.boq?'<span class="tag good">READY</span>':'<span class="tag warn">PENDING</span>'}</td></tr>
+            <tr><td class="mono nowrap">규정점검_리포트.pdf</td>
+                <td class="sub">위반/주의 + 근거조항 리포트(모의)</td>
+                <td>${state.generated.ruleReport?'<span class="tag good">READY</span>':'<span class="tag warn">PENDING</span>'}</td></tr>
+            <tr><td class="mono nowrap">AuditLog.json</td>
+                <td class="sub">감사추적 로그(모의)</td>
+                <td><span class="tag good">READY</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card">
+        <h4>HITL 체크리스트</h4>
+        <div class="sub">최종 책임성과 감사 대응 강화를 위한 사람 검수 흐름.</div>
+        <div class="divider"></div>
+        <table class="table">
+          <thead><tr><th>항목</th><th>기준</th><th>상태</th></tr></thead>
+          <tbody>
+            <tr><td>근거 태깅</td><td class="sub">핵심 문장 출처 포함</td>
+                <td>${state.generated.citationsOk?'<span class="tag good">PASS</span>':'<span class="tag bad">FAIL</span>'}</td></tr>
+            <tr><td>내역 산출</td><td class="sub">DB 버전/산식 로그 존재</td>
+                <td>${state.generated.boq?'<span class="tag good">PASS</span>':'<span class="tag warn">PENDING</span>'}</td></tr>
+            <tr><td>규정 점검</td><td class="sub">위반/주의 리포트</td>
+                <td>${state.generated.ruleReport?'<span class="tag good">PASS</span>':'<span class="tag warn">PENDING</span>'}</td></tr>
+            <tr><td>승인</td><td class="sub">검수자 서명(모의)</td>
+                <td>${state.generated.hitlApproved?'<span class="tag good">APPROVED</span>':'<span class="tag warn">NOT YET</span>'}</td></tr>
+          </tbody>
+        </table>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn" id="btnToAuditFromExport">Audit Log 보기</div>
+          <div class="btn" id="btnBackDash">대시보드로</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   Page: Audit Log
+   ============================================================ */
+function renderAuditPage(){
+  return `
+    <div class="row">
+      <div class="card">
+        <h4>Audit Log</h4>
+        <div class="sub">검색/생성/계산/점검/승인 이벤트가 시간순으로 기록됩니다.</div>
+        <div class="divider"></div>
+        <div class="audit" id="auditBox"></div>
+        <div class="divider"></div>
+        <div class="flex">
+          <div class="btn" id="btnExportAudit">📋 AuditLog.json 복사</div>
+          <div class="btn" id="btnBackDash2">대시보드로</div>
+          <div class="right sub">최근 로그가 위로 쌓입니다.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>감사추적 포인트(회의용)</h4>
+        <div class="notice">
+          <b>"왜 이 결과가 나왔는지"</b>를 설명할 수 있어야 공공/감리 대응이 됩니다.<br/><br/>
+          이 데모는 ① 근거 태깅, ② 확정 계산(산식/단가 버전),
+          ③ 규정 조항과 함께 위반 리포트, ④ 검수 승인(HITL)까지
+          <b>기록</b>으로 남는 흐름을 보여줍니다.
+        </div>
+        <div class="divider"></div>
+        <h4>빠른 데모 순서</h4>
+        <ol class="sub" style="line-height:1.8; margin:0; padding-left:18px">
+          <li><kbd class="kbd">F2</kbd> 또는 <b>원클릭 실행</b></li>
+          <li>RAG 화면에서 <b>출처 태그 OFF</b> → 규정점검 <b>BLOCK</b> 확인</li>
+          <li>출처 태그 ON → 재점검 → <b>PASS</b> 확인</li>
+          <li>BoQ 산출 → 로그에서 <b>DB 버전/산식</b> 확인</li>
+        </ol>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   Audit box renderer (called after DOM is ready)
+   ============================================================ */
+function renderAuditBox(){
+  const box = document.getElementById("auditBox");
+  if(!box) return;
+  if(state.audit.length===0){
+    box.innerHTML = `<div class="sub">아직 로그가 없습니다. <kbd class="kbd">F2</kbd> 또는 "원클릭 실행"을 눌러보세요.</div>`;
+    return;
+  }
+  box.innerHTML = state.audit.map((a,i)=>{
+    const metaStr = Object.keys(a.meta||{}).length ? JSON.stringify(a.meta) : "";
+    const expandId= `audit_detail_${i}`;
+    return `
+      <div class="audit-item">
+        <div class="meta">
+          ${badgeByType(a.type)}
+          <b class="ts">${a.t}</b>
+          <span class="msg">${escapeHtml(a.message)}</span>
+        </div>
+        ${metaStr ? `
+          <div class="meta-detail" id="${expandId}">${escapeHtml(metaStr)}</div>
+          <span class="audit-expand" data-target="${expandId}">▼ 펼치기</span>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
+
+  // [FIX] meta detail expand/collapse
+  box.querySelectorAll(".audit-expand").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const el = document.getElementById(btn.dataset.target);
+      if(!el) return;
+      el.classList.toggle("expanded");
+      btn.textContent = el.classList.contains("expanded") ? "▲ 접기" : "▼ 펼치기";
+    });
+  });
+}
+
+/* ============================================================
+   One-click flow
+   ============================================================ */
+function runOneClickFlow(){
+  if(!state.generated.citationsOk){ state.generated.citationsOk=true; addAudit("INFO","(원클릭) 출처 태그 ON",{}); }
+  if(!state.generated.proposal){ state.generated.proposal=makeProposalText(); addAudit("OK","(원클릭) 제안서 초안 생성",{citations:true}); }
+  if(!state.generated.boq){ computeBoq(); }
+  runRules({ area_m2:areaM2(state.kss.width_mm,state.kss.height_mm), protrusion_mm:180, ledDiffuser:true, material:state.kss.material+" (알루미늄)", install:state.kss.install, citationsOk:true });
+  state.generated.pdfReady=true; addAudit("OK","(원클릭) 납품 패키지 생성(PDF 모의)",{files:4});
+  state.generated.hitlApproved=true; addAudit("OK","(원클릭) HITL 승인",{reviewer:"검수자(샘플)"});
+  currentPageId="dashboard";
+  paint();
+  toast("✅ 원클릭 실행 완료!\n대시보드 → 규정 점검 → Audit Log 순으로 보여주세요.");
+}
+
+/* ============================================================
+   Page handlers
+   ============================================================ */
+function bindPageHandlers(){
+  // Global header
+  document.getElementById("btnLoadSample").onclick=()=>{
+    addAudit("INFO","샘플 데이터 로드",{project:state.project.id});
+    toast("샘플 데이터가 준비되었습니다.\n왼쪽 메뉴 클릭 또는 F2로 시연하세요.");
+    paint();
+  };
+  document.getElementById("btnRunFlow").onclick=runOneClickFlow;
+  document.getElementById("btnReset").onclick=()=>{
+    Object.assign(state.generated, {proposal:null,boq:null,ruleReport:null,pdfReady:false,hitlApproved:false,citationsOk:false,template:null,sessionRules:null});
+    state.audit=[];
+    addAudit("INFO","초기화 완료");
+    currentPageId="dashboard";
+    paint();
+  };
+
+  if(currentPageId==="dashboard"){
+    const gK=document.getElementById("goKss"), gR=document.getElementById("goRun"), gA=document.getElementById("goAudit");
+    if(gK) gK.onclick=()=>{ currentPageId="kss"; paint(); };
+    if(gR) gR.onclick=runOneClickFlow;
+    if(gA) gA.onclick=()=>{ currentPageId="audit"; paint(); };
+  }
+
+  if(currentPageId==="kss"){
+    const updateArea=()=>{
+      const w=Number(document.getElementById("k_width").value||0);
+      const h=Number(document.getElementById("k_height").value||0);
+      document.getElementById("k_area").textContent=areaM2(w,h).toFixed(2);
+    };
+    ["k_width","k_height"].forEach(id=> document.getElementById(id).addEventListener("input",updateArea));
+
+    document.getElementById("btnSaveKss").onclick=()=>{
+      // [FIX] state에 저장하고 나서 paint() 하지 않고 인라인 메시지만 표시 → 입력값 날아가는 문제 방지
+      state.kss.location    = document.getElementById("k_location").value.trim();
+      state.kss.width_mm    = Number(document.getElementById("k_width").value||0);
+      state.kss.height_mm   = Number(document.getElementById("k_height").value||0);
+      state.kss.quantity    = Number(document.getElementById("k_qty").value||0);
+      state.kss.protrusion_mm= Number(document.getElementById("k_protrusion").value||0);
+      state.kss.material    = document.getElementById("k_material").value.trim();
+      state.kss.install     = document.getElementById("k_install").value.trim();
+      state.kss.notes       = document.getElementById("k_notes").value.trim();
+      addAudit("OK","KSS 입력 저장",{width_mm:state.kss.width_mm,height_mm:state.kss.height_mm,qty:state.kss.quantity});
+      const vEl = document.getElementById("k_validation");
+      if(vEl) vEl.innerHTML=`<b>저장 완료</b><br/>입력값이 표준 스키마(KSS)에 기록되었습니다. <span class="tag good">OK</span>`;
+      toast("KSS 입력이 저장되었습니다.");
+    };
+    document.getElementById("btnToRag").onclick=()=>{ currentPageId="rag"; paint(); };
+  }
+
+  if(currentPageId==="rag"){
+    document.getElementById("btnRagSearch").onclick=()=>{
+      addAudit("OK","근거 검색 완료(샘플)",{docs:state.kb.docs.map(d=>d.id)});
+      toast("근거 검색 완료!\n오른쪽에서 '제안서 초안 생성'을 눌러보세요.");
+    };
+    document.getElementById("btnRagToggleCite").onclick=()=>{
+      state.generated.citationsOk=!state.generated.citationsOk;
+      addAudit("INFO",`출처 태그 ${state.generated.citationsOk?"ON":"OFF"}`,{});
+      paint();
+    };
+    document.getElementById("btnRagGenerate").onclick=()=>{
+      state.generated.proposal=makeProposalText();
+      addAudit(state.generated.citationsOk?"OK":"WARN","제안서 초안 생성(샘플)",{citations:state.generated.citationsOk});
+      paint();
+    };
+    document.getElementById("btnToBoq").onclick=()=>{ currentPageId="boq"; paint(); };
+    document.getElementById("btnToRules").onclick=()=>{ currentPageId="rules"; paint(); };
+  }
+
+  if(currentPageId==="boq"){
+    document.getElementById("btnCalcBoq").onclick=()=>{ computeBoq(); paint(); };
+    document.getElementById("btnReplayBoq").onclick=()=>{
+      const before=JSON.stringify(state.generated.boq);
+      computeBoq();
+      const after=JSON.stringify(state.generated.boq);
+      // 시각(calcAt)만 다르므로 rows/합계만 비교
+      const bObj=JSON.parse(before), aObj=JSON.parse(after);
+      const same= bObj && JSON.stringify(bObj.rows)===JSON.stringify(aObj.rows)
+                        && bObj.subtotal===aObj.subtotal;
+      addAudit(same?"OK":"WARN","재현성 테스트 실행",{same});
+      toast(same?"✅ 재현성 OK: 동일 결과입니다.":"⚠ 재현성 경고: 결과가 달라졌습니다(데모 오류).");
+      paint();
+    };
+    const a=document.getElementById("btnToRulesFromBoq"), b=document.getElementById("btnToExportFromBoq");
+    if(a) a.onclick=()=>{ currentPageId="rules"; paint(); };
+    if(b) b.onclick=()=>{ currentPageId="export"; paint(); };
+  }
+
+  if(currentPageId==="rules"){
+    document.getElementById("btnRunRules").onclick=()=>{
+      const protrusion=Number(document.getElementById("r_protrusion").value||0);
+      const led=document.getElementById("r_led").value==="true";
+      state.kss.protrusion_mm = protrusion;
+      runRules({ area_m2:areaM2(state.kss.width_mm,state.kss.height_mm), protrusion_mm:protrusion, ledDiffuser:led, material:state.kss.material, install:state.kss.install, citationsOk:state.generated.citationsOk });
+      paint();
+    };
+    document.getElementById("btnFixCiteAndRerun").onclick=()=>{
+      state.generated.citationsOk=true;
+      addAudit("INFO","출처 태그 ON(자동)",{});
+      runRules({ area_m2:areaM2(state.kss.width_mm,state.kss.height_mm), protrusion_mm:180, ledDiffuser:true, material:state.kss.material+" (알루미늄)", install:state.kss.install, citationsOk:true });
+      paint();
+    };
+    document.getElementById("btnToExport").onclick=()=>{ currentPageId="export"; paint(); };
+    document.getElementById("btnToAudit").onclick=()=>{ currentPageId="audit"; paint(); };
+  }
+
+  if(currentPageId==="export"){
+    document.getElementById("btnMakePackage").onclick=()=>{
+      const ok=!!state.generated.proposal&&!!state.generated.boq&&!!state.generated.ruleReport&&state.generated.citationsOk;
+      if(!ok){
+        addAudit("BLOCK","납품 패키지 생성 차단(조건 미충족)",{proposal:!!state.generated.proposal,boq:!!state.generated.boq,rules:!!state.generated.ruleReport,citations:state.generated.citationsOk});
+        toast("⛔ 납품 패키지 생성이 차단되었습니다.\n조건: 제안서 + BoQ + 규정점검 + 출처태그 ON\n→ 원클릭 실행 또는 앞 단계를 완료하세요.");
+        paint(); return;
+      }
+      state.generated.pdfReady=true;
+      addAudit("OK","납품 패키지 생성 완료(PDF 모의)",{files:4});
+      toast("📦 납품 패키지가 생성되었습니다.");
+      paint();
+    };
+    document.getElementById("btnHITLApprove").onclick=()=>{
+      if(!state.generated.pdfReady){
+        addAudit("WARN","HITL 승인 대기(패키지 미생성)",{});
+        toast("먼저 '납품 패키지 만들기'를 실행하세요.");
+        return;
+      }
+      state.generated.hitlApproved=true;
+      addAudit("OK","HITL 승인 완료(모의 서명)",{reviewer:"검수자(샘플)"});
+      toast("✔ HITL 승인 완료!");
+      paint();
+    };
+    document.getElementById("btnToAuditFromExport").onclick=()=>{ currentPageId="audit"; paint(); };
+    document.getElementById("btnBackDash").onclick=()=>{ currentPageId="dashboard"; paint(); };
+  }
+
+  if(currentPageId==="audit"){
+    renderAuditBox(); // DOM이 준비된 후 호출
+    document.getElementById("btnExportAudit").onclick=()=>{
+      const json=JSON.stringify({project:state.project,audit:state.audit},null,2);
+      navigator.clipboard.writeText(json).then(()=>{
+        addAudit("OK","AuditLog.json 클립보드 복사",{bytes:json.length});
+        toast("📋 AuditLog.json이 클립보드에 복사되었습니다.");
+        renderAuditBox();
+      }).catch(()=>{ toast("클립보드 복사 실패. 브라우저 권한을 확인하세요."); });
+    };
+    document.getElementById("btnBackDash2").onclick=()=>{ currentPageId="dashboard"; paint(); };
+  }
+
+  if(currentPageId==="projects"){
+    const base=[
+      { id:"PRJ-2026-GB-001", name:"대구·경북 공공사인 정비(시범) — 중앙로 구간", org:"○○시청 도시경관과",           status:"진행", updated:"2026-03-05", tags:["간판개선","RAG","BoQ"] },
+      { id:"PRJ-2026-GB-002", name:"관급 내역 자동산출 PoC — A업체",              org:"대구경북광고물제작공업협동조합",  status:"대기", updated:"2026-03-01", tags:["파일럿","KPI","검증"] },
+      { id:"PRJ-2026-GB-003", name:"규정 룰셋(샘플) 고도화 — 1차",               org:"내부",                        status:"완료", updated:"2026-02-20", tags:["Rule-set","감사로그"] },
+    ];
+    const apply=()=>{
+      const q=(document.getElementById("p_query").value||"").trim().toLowerCase();
+      const st=document.getElementById("p_status").value;
+      const sort=document.getElementById("p_sort").value;
+      let items=base.filter(p=>{
+        const hit=(p.id+" "+p.name+" "+p.org).toLowerCase().includes(q);
+        return hit&&(st==="ALL"||p.status===st);
+      });
+      if(sort==="updated_desc")      items.sort((a,b)=>a.updated<b.updated?1:-1);
+      else if(sort==="name_asc")     items.sort((a,b)=>a.name.localeCompare(b.name,"ko"));
+      else if(sort==="status_asc")   items.sort((a,b)=>a.status.localeCompare(b.status,"ko"));
+      document.getElementById("p_count").textContent=items.length;
+      document.getElementById("project_table").innerHTML=renderProjectTable(items);
+      bindOpenButtons();
+    };
+    const bindOpenButtons=()=>{
+      document.querySelectorAll("[data-open]").forEach(btn=>{
+        btn.addEventListener("click",()=>{
+          const p=base.find(x=>x.id===btn.dataset.open);
+          if(!p) return;
+          state.project.id=p.id; state.project.name=p.name; state.project.client=p.org;
+          addAudit("OK","프로젝트 선택",{project:p.id});
+          document.getElementById("project_detail").innerHTML=`
+            <b>${escapeHtml(p.name)}</b><br/>
+            <span class="tag">ID</span> <span class="mono">${escapeHtml(p.id)}</span><br/>
+            <span class="tag">기관</span> ${escapeHtml(p.org)}<br/>
+            <span class="tag">상태</span> ${escapeHtml(p.status)}<br/>
+            <span class="tag">최근 수정</span> <span class="mono">${p.updated}</span><br/>
+            <div class="divider"></div>
+            <span class="sub">다음: KSS 입력 → RAG → BoQ → 규정점검 → 납품</span>
+          `;
+          const kbtn=document.getElementById("btnOpenKss"), abtn=document.getElementById("btnOpenAudit");
+          [kbtn,abtn].forEach(x=>{ x.removeAttribute("disabled"); });
+          kbtn.onclick=()=>{ currentPageId="kss"; paint(); };
+          abtn.onclick=()=>{ currentPageId="audit"; paint(); };
+        });
+      });
+    };
+    document.getElementById("btnProjectSearch").onclick=apply;
+    document.getElementById("p_query").addEventListener("keydown",e=>{ if(e.key==="Enter") apply(); });
+    document.getElementById("btnProjectNew").onclick=()=>{
+      const n=Math.floor(Math.random()*900+100), id=`PRJ-2026-NEW-${n}`;
+      state.project.id=id; state.project.name=`신규 프로젝트(샘플) — ${n}`; state.project.client="신규 의뢰처(샘플)";
+      addAudit("INFO","새 프로젝트 생성(샘플)",{project:id});
+      toast("신규 프로젝트(샘플)를 생성했습니다.\nKSS 입력으로 이동합니다.");
+      currentPageId="kss"; paint();
+    };
+    apply();
+  }
+
+  if(currentPageId==="templates"){
+    const tpl=state.generated.template||{};
+    const setVal=(id,v)=>{ const el=document.getElementById(id); if(el&&v!=null) el.value=v; };
+    setVal("t_proposal", tpl.proposal||"TPL-PROP-01");
+    setVal("t_boq",      tpl.boq||"TPL-BOQ-01");
+    setVal("t_rules",    tpl.rules||"TPL-RULE-01");
+    setVal("t_format",   tpl.format||"PDF");
+    setVal("t_theme",    tpl.theme||"BLUE");
+    setVal("t_mode",     tpl.mode||"SUMMARY");
+
+    const save=()=>{ state.generated.template={ proposal:document.getElementById("t_proposal").value, boq:document.getElementById("t_boq").value, rules:document.getElementById("t_rules").value, format:document.getElementById("t_format").value, theme:document.getElementById("t_theme").value, mode:document.getElementById("t_mode").value }; addAudit("OK","템플릿 선택 저장",state.generated.template); };
+    document.getElementById("btnSaveTemplate").onclick=()=>{ save(); toast("템플릿 선택이 저장되었습니다."); paint(); };
+    document.getElementById("btnPreviewDoc").onclick=()=>{
+      save();
+      const ok=!!state.generated.proposal||!!state.generated.boq||!!state.generated.ruleReport;
+      if(!ok){ addAudit("WARN","미리보기 생성 시도(데이터 부족)",{}); toast("데이터가 없습니다.\n원클릭 실행 또는 RAG/BoQ/규정점검을 먼저 실행하세요."); }
+      else { addAudit("OK","문서 미리보기 생성(모의)",{format:state.generated.template.format}); }
+      document.getElementById("docPreview").innerHTML=buildDocPreview({ format:state.generated.template.format, mode:state.generated.template.mode, theme:state.generated.template.theme });
+    };
+    document.getElementById("btnGoExport").onclick=()=>{ currentPageId="export"; paint(); };
+  }
+
+  if(currentPageId==="rules_admin"){
+    if(!state.generated.sessionRules){ state.generated.sessionRules=JSON.parse(JSON.stringify(state.ruleSet.rules)); }
+    document.getElementById("ra_status").value=state.generated.ruleSetStatus||"DRAFT";
+
+    const syncEditorToState=()=>{
+      document.querySelectorAll("[data-field][data-idx]").forEach(el=>{
+        const idx=Number(el.dataset.idx), field=el.dataset.field;
+        if(state.generated.sessionRules[idx]) state.generated.sessionRules[idx][field]=el.value;
+      });
+    };
+
+    document.querySelectorAll("[data-del]").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        syncEditorToState();
+        const idx=Number(btn.dataset.del), removed=state.generated.sessionRules.splice(idx,1);
+        addAudit("WARN","룰 삭제",{removed:removed[0]?.id});
+        paint();
+      });
+    });
+
+    document.getElementById("btnRaSaveMeta").onclick=()=>{
+      syncEditorToState();
+      state.generated.ruleSetTarget=document.getElementById("ra_target").value.trim();
+      state.generated.ruleSetVersion=document.getElementById("ra_version").value.trim();
+      state.generated.ruleSetStatus=document.getElementById("ra_status").value;
+      const note=document.getElementById("ra_note").value.trim();
+      addAudit("OK","룰셋 메타 저장",{target:state.generated.ruleSetTarget,version:state.generated.ruleSetVersion,note});
+      toast("룰셋 메타정보를 저장했습니다.");
+      paint();
+    };
+    document.getElementById("btnRaAddRule").onclick=()=>{
+      syncEditorToState();
+      const n=state.generated.sessionRules.length+1, id="R"+String(n).padStart(2,"0");
+      state.generated.sessionRules.push({id,title:"신규 룰(샘플)",level:"주의",when:"(조건 입력)",clause:"(근거 조항)",hint:"(권고 문구)"});
+      addAudit("INFO","룰 추가",{id}); paint();
+    };
+
+    const validate=()=>{
+      syncEditorToState();
+      const rules=state.generated.sessionRules, errors=[];
+      const ids=rules.map(r=>(r.id||"").trim());
+      const dup=ids.filter((id,i)=>id&&ids.indexOf(id)!==i);
+      if(dup.length) errors.push("룰 ID 중복: "+[...new Set(dup)].join(", "));
+      rules.forEach(r=>{ if(!r.id||!r.title) errors.push(`필수 누락: id/title (${r.id||"빈값"})`); if(!r.when) errors.push(`필수 누락: when (${r.id})`); if(!r.clause) errors.push(`필수 누락: clause (${r.id})`); if(!r.hint) errors.push(`필수 누락: hint (${r.id})`); });
+      const hasCite=rules.some(r=>(r.id||"")==="R06"||(r.title||"").includes("근거")||(r.title||"").includes("출처"));
+      if(!hasCite) errors.push("품질 룰(출처/근거 태깅) 누락: R06 권장");
+      return errors;
+    };
+
+    document.getElementById("btnRaValidate").onclick=()=>{
+      const errors=validate(), gate=document.getElementById("ra_gate");
+      if(errors.length){
+        gate.style.cssText="border-style:solid;border-color:rgba(255,107,107,.45);background:rgba(255,107,107,.08)";
+        gate.innerHTML=`<b>검증 실패(BLOCK)</b><br/>`+errors.map(e=>`- ${escapeHtml(e)}`).join("<br/>");
+        addAudit("BLOCK","룰셋 검증 실패",{errors:errors.length});
+      }else{
+        gate.style.cssText="border-style:solid;border-color:rgba(62,226,143,.45);background:rgba(62,226,143,.08)";
+        gate.innerHTML=`<b>검증 통과(OK)</b><br/>배포(Publish) 가능합니다.`;
+        addAudit("OK","룰셋 검증 통과",{rules:state.generated.sessionRules.length});
+      }
+      return errors.length===0;
+    };
+
+    document.getElementById("btnRaPublish").onclick=()=>{
+      // [FIX] validate 결과를 return값으로 판단 (innerText 파싱 방식 제거)
+      const ok=document.getElementById("btnRaValidate").click();
+      const gateText=document.getElementById("ra_gate").innerText||"";
+      if(gateText.includes("실패")){ toast("검증 실패 상태라 배포할 수 없습니다.\n오류를 수정 후 다시 시도하세요."); return; }
+      state.generated.ruleSetStatus="PUBLISHED";
+      addAudit("OK","룰셋 배포(Publish)",{version:state.generated.ruleSetVersion});
+      toast("룰셋을 배포했습니다(샘플)."); paint();
+    };
+
+    document.getElementById("btnRaRunTest").onclick=()=>{
+      syncEditorToState();
+      const area=areaM2(state.kss.width_mm,state.kss.height_mm);
+      const limit=Number(document.getElementById("ra_test_area_limit").value||4.0);
+      const protrusion=Number(document.getElementById("ra_test_protrusion").value||0);
+      const led=document.getElementById("ra_test_led").value==="true";
+      const cite=document.getElementById("ra_test_cite").value==="true";
+      const ctx={area_m2:area,area_limit_m2:limit,protrusion_mm:protrusion,ledDiffuser:led,citationsOk:cite,material:state.kss.material,install:state.kss.install};
+      const evaluated=state.generated.sessionRules.map(r=>{
+        let ok=true;
+        if(r.id==="R01") ok=ctx.area_m2<=ctx.area_limit_m2;
+        else if(r.id==="R02") ok=ctx.protrusion_mm<=200;
+        else if(r.id==="R03") ok=ctx.ledDiffuser===true;
+        else if(r.id==="R06") ok=ctx.citationsOk===true;
+        const status=ok?"OK":(r.level==="주의"?"WARN":r.level==="준수"?"WARN":"BLOCK");
+        return {...r,ok,status};
+      });
+      const blocks=evaluated.filter(x=>x.status==="BLOCK"), warns=evaluated.filter(x=>x.status==="WARN"), oks=evaluated.filter(x=>x.status==="OK");
+      document.getElementById("ra_test_result").innerHTML=`
+        <div class="flex">
+          <span class="tag bad">BLOCK ${blocks.length}</span>
+          <span class="tag warn">WARN ${warns.length}</span>
+          <span class="tag good">OK ${oks.length}</span>
+          <span class="right sub">면적 ${ctx.area_m2.toFixed(2)}㎡ / 상한 ${ctx.area_limit_m2.toFixed(1)}㎡ / 돌출 ${ctx.protrusion_mm}mm</span>
+        </div>
+        <div class="divider"></div>
+        <table class="table">
+          <thead><tr><th>룰</th><th>결과</th><th>근거조항</th><th>권고</th></tr></thead>
+          <tbody>
+            ${evaluated.map(r=>`
+              <tr>
+                <td class="nowrap"><b>${escapeHtml(r.id)}</b> · ${escapeHtml(r.title)}</td>
+                <td>${badgeByType(r.status)} <span class="sub">${r.ok?"준수":escapeHtml(r.level)}</span></td>
+                <td class="mono" style="font-size:11px">${escapeHtml(r.clause||"")}</td>
+                <td class="sub">${r.ok?"—":escapeHtml(r.hint||"")}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+      addAudit(blocks.length?"BLOCK":warns.length?"WARN":"OK","룰셋 테스트 실행(관리자)",{blocks:blocks.length,warns:warns.length});
+    };
+
+    document.getElementById("btnRaPushToRuntime").onclick=()=>{
+      syncEditorToState();
+      state.ruleSet.rules=JSON.parse(JSON.stringify(state.generated.sessionRules));
+      addAudit("OK","룰셋 런타임 적용",{rules:state.ruleSet.rules.length,version:state.generated.ruleSetVersion});
+      toast("편집한 룰셋을 런타임에 적용했습니다.\n'규정 점검' 페이지에 즉시 반영됩니다.");
+    };
+
+    document.getElementById("btnRaGoRules").onclick=()=>{ currentPageId="rules"; paint(); };
+    document.getElementById("btnRaGoAudit").onclick=()=>{ currentPageId="audit"; paint(); };
+  }
+
+  if(currentPageId==="data_admin"){
+    document.querySelectorAll("[data-del-doc]").forEach(btn=>{
+      btn.onclick=()=>{ state.kb.docs=state.kb.docs.filter(d=>d.id!==btn.dataset.delDoc); addAudit("WARN","KB 문서 삭제",{id:btn.dataset.delDoc}); paint(); };
+    });
+    document.querySelectorAll("[data-del-item]").forEach(btn=>{
+      btn.onclick=()=>{ state.pricingDb.items=state.pricingDb.items.filter(i=>i.code!==btn.dataset.delItem); addAudit("WARN","단가 품목 삭제",{code:btn.dataset.delItem}); paint(); };
+    });
+    document.getElementById("btnAddDoc").onclick=()=>{
+      const id="DOC-"+Math.floor(Math.random()*1000);
+      state.kb.docs.push({id,title:"신규 규정 문서(샘플)",type:"규정",year:2026});
+      addAudit("INFO","KB 문서 추가",{id}); paint();
+    };
+    document.getElementById("btnAddItem").onclick=()=>{
+      const code="NEW-"+Math.floor(Math.random()*100);
+      state.pricingDb.items.push({code,name:"신규 품목(샘플)",unit:"EA",unitPrice:120000});
+      addAudit("INFO","단가 품목 추가",{code}); paint();
+    };
+    document.getElementById("btnBumpVersion").onclick=()=>{
+      state.pricingDb.version="DB-"+Date.now();
+      addAudit("OK","단가DB 버전 업데이트",{version:state.pricingDb.version});
+      toast("단가 DB 버전이 업데이트되었습니다."); paint();
+    };
+  }
+}
+
+/* ============================================================
+   Keyboard shortcut
+   ============================================================ */
+window.addEventListener("keydown",e=>{ if(e.key==="F2"){ e.preventDefault(); runOneClickFlow(); } });
+
+document.getElementById("demoPill").onclick=runOneClickFlow;
+
+/* ============================================================
+   Boot
+   ============================================================ */
+addAudit("INFO","데모 시작",{project:state.project.id});
+paint();
+</script>
+</body>
+</html>
