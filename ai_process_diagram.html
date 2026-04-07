@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 공정 구조도</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f6f8fb;
+      color: #1f2937;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 32px 20px 48px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+    }
+    .sub {
+      margin: 0 0 28px;
+      color: #4b5563;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    .legend {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 600;
+      background: white;
+      border: 1px solid #e5e7eb;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot-blue { background: #3b82f6; }
+    .dot-red { background: #ef4444; }
+    .dot-green { background: #10b981; }
+    .flow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 36px;
+    }
+    .box {
+      width: min(720px, 100%);
+      background: white;
+      border: 2px solid #d1d5db;
+      border-radius: 18px;
+      padding: 18px 22px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+      text-align: center;
+    }
+    .box h2 {
+      margin: 0 0 8px;
+      font-size: 22px;
+    }
+    .box p {
+      margin: 0;
+      color: #4b5563;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .blue { border-color: #93c5fd; background: #eff6ff; }
+    .red { border-color: #fca5a5; background: #fef2f2; }
+    .green { border-color: #86efac; background: #ecfdf5; }
+    .arrow {
+      font-size: 34px;
+      line-height: 1;
+      color: #9ca3af;
+      font-weight: 700;
+    }
+    .bottom {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .mini {
+      background: white;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .mini h3 {
+      margin: 0 0 10px;
+      font-size: 17px;
+    }
+    .mini ul {
+      margin: 0;
+      padding-left: 18px;
+      color: #4b5563;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+    @media (max-width: 760px) {
+      h1 { font-size: 24px; }
+      .box h2 { font-size: 18px; }
+      .bottom { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>AI 기술 설명용 공정 구조도</h1>
+    <p class="sub">
+      한울-투윈-GIVET-설비업체 역할을 한눈에 보이도록 정리한 참고용 HTML 도식입니다.
+      핵심은 <strong>GIVET이 AI 모델을 설계·개발</strong>하고,
+      <strong>투윈이 데이터 수집·플랫폼</strong>을 맡으며,
+      <strong>설비업체가 실제 제어</strong>를 수행하는 구조입니다.
+    </p>
+
+    <div class="legend">
+      <div class="tag"><span class="dot dot-blue"></span>투윈: 데이터 수집 / 플랫폼</div>
+      <div class="tag"><span class="dot dot-red"></span>GIVET: AI 모델 개발</div>
+      <div class="tag"><span class="dot dot-green"></span>설비업체: PLC / 설비 제어</div>
+    </div>
+
+    <section class="flow">
+      <div class="box">
+        <h2>① 공정 데이터</h2>
+        <p>온도, 습도, 시간, LOT, 수분, 중량, 형상 등 공정별 핵심 데이터</p>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="box blue">
+        <h2>② 데이터 수집 / MES 연동 (투윈)</h2>
+        <p>센서·설비·MES 데이터를 수집하고 관리 가능한 형태로 연동</p>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="box">
+        <h2>③ 데이터 전처리</h2>
+        <p>결측값 처리, 이상치 확인, 학습 가능한 형태로 데이터 정리</p>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="box red">
+        <h2>④ AI 모델 설계·개발 (GIVET)</h2>
+        <p>공정 데이터를 기반으로 품질 예측 및 공정 최적화 모델 개발</p>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="box red">
+        <h2>⑤ 예측 결과 / 최적 조건 도출 (GIVET)</h2>
+        <p>예상 수분, 품질, 불량 가능성, 권장 온도·시간·속도 등 산출</p>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="box blue">
+        <h2>⑥ 플랫폼 반영 / 운영 연계 (투윈)</h2>
+        <p>AI 결과를 플랫폼에 반영하고 현장에서 확인·활용 가능하도록 구성</p>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="box green">
+        <h2>⑦ 설비 제어 / 공정 반영 (설비업체)</h2>
+        <p>PLC 및 자동화 설비에서 실제 공정 조건을 반영하고 생산라인에 적용</p>
+      </div>
+    </section>
+
+    <section class="bottom">
+      <div class="mini">
+        <h3>GIVET가 쓰면 되는 핵심 문장</h3>
+        <ul>
+          <li>공정 데이터 기반 AI 모델 설계 및 개발</li>
+          <li>품질 예측 및 최적 조건 도출</li>
+          <li>모델 파일 생성 및 검증</li>
+        </ul>
+      </div>
+      <div class="mini">
+        <h3>투윈 역할</h3>
+        <ul>
+          <li>데이터 수집</li>
+          <li>MES 연동</li>
+          <li>운영 플랫폼 구성</li>
+        </ul>
+      </div>
+      <div class="mini">
+        <h3>설비업체 역할</h3>
+        <ul>
+          <li>PLC 연동</li>
+          <li>자동화 설비 제어</li>
+          <li>실제 공정 반영</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
