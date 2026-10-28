@@ -1,0 +1,342 @@
+{
+  "schema": "signum-kss-givet-collab-v1",
+  "savedAt": "2026-10-20T05:13:52.558Z",
+  "meta": {
+    "meetingDate": "",
+    "participants": "",
+    "decisions": "",
+    "risks": ""
+  },
+  "assets": [
+    {
+      "id": "D-01",
+      "category": "표준 데이터",
+      "title": "KSS 표준 스키마·필드 정의",
+      "desc": "프로젝트 / 사인 유형 / 현장·치수·재질 / 데이터 식별 체계",
+      "kan": "실무에서 사용하는 필수 항목·유형·분류 기준 확인",
+      "dev": "DB 테이블·필드 목록, ERD 또는 스키마 정의서",
+      "givet": "데이터 타입·단위·필수값·연계키·버전 점검",
+      "status": "not_received",
+      "owner": "",
+      "due": "",
+      "note": ""
+    },
+    {
+      "id": "D-02",
+      "category": "RAG",
+      "title": "제안서·지침·사례 원본문서",
+      "desc": "검색 지식베이스(KB)의 실제 원천자료",
+      "kan": "과거 제안서·지침·가이드·사례 파일 및 목록 제공",
+      "dev": "문서 등록 현황, 문서ID·페이지·청크ID, 검색 예시",
+      "givet": "근거 문장과 출처 원문 일치 여부 검증",
+      "status": "not_received",
+      "owner": "",
+      "due": "",
+      "note": ""
+    },
+    {
+      "id": "D-03",
+      "category": "문서 출력",
+      "title": "제안서 템플릿·납품 서식",
+      "desc": "실제 제출용 문서, 표·이미지·내역 배치",
+      "kan": "기존 제안서 원본(HWP/DOCX 등), 필수 섹션·서식",
+      "dev": "템플릿 매핑 표, 샘플 PDF·DOCX·HWP 출력",
+      "givet": "필수 문단·표·이미지·스타일 정합성 검토",
+      "status": "not_received",
+      "owner": "",
+      "due": "",
+      "note": ""
+    },
+    {
+      "id": "D-04",
+      "category": "BoQ",
+      "title": "표준 품목·단가표",
+      "desc": "품목코드 / 규격 / 단위 / 단가 / 적용 기준일",
+      "kan": "실사용 품목별 단가표와 기준일·출처",
+      "dev": "품목·단가 DB 및 단가 버전 관리 예시",
+      "givet": "수량 단위·단가 버전·출처 추적 가능 여부",
+      "status": "not_received",
+      "owner": "",
+      "due": "",
+      "note": ""
+    },
+    {
+      "id": "D-05",
+      "category": "BoQ",
+      "title": "표준 산식·계산 기준",
+      "desc": "물량·금액 계산식 / 입력 변수 / 예외·반올림 규칙",
+      "kan": "셀 수식 포함 XLSX 및 계산 기준·예외조건",
+      "dev": "산식 ID·버전·파라미터 정의, 실제 계산 결과",
+      "givet": "입력·기대값·결과 일치와 경계조건 점검",
+      "status": "not_received",
+      "owner": "",
+      "due": "",
+      "note": ""
+    },
+    {
+      "id": "D-06",
+      "category": "BoQ",
+      "title": "기존 확정 내역서·산출근거",
+      "desc": "시스템 자동산출 결과를 비교할 검증 사례",
+      "kan": "실제 치수·재질·수량과 확정 내역이 함께 있는 사례",
+      "dev": "동일 입력으로 생성한 BoQ 결과 및 계산 로그",
+      "givet": "전문가 수기 결과 대비 오차·재현성 검증",
+      "status": "not_received",
+      "owner": "",
+      "due": "",
+      "note": ""
+    },
+    {
+      "id": "D-07",
+      "category": "규정",
+      "title": "지자체 규정·조례·가이드라인",
+      "desc": "적용 지역 / 조항 / 시행일 / 규정 원문",
+      "kan": "대상 지자체·적용 규정 지정 및 원문 제공·확인",
+      "dev": "룰셋 목록(규칙ID·조항·조건·적용 범위)",
+      "givet": "규정 출처·버전·판정조건·예외사항 검토",
+      "status": "not_received",
+      "owner": "",
+      "due": "",
+      "note": ""
+    },
+    {
+      "id": "D-08",
+      "category": "규정",
+      "title": "심의·규정 점검 사례",
+      "desc": "통과 / 주의 / 위반 및 반려 사유",
+      "kan": "실제 검토·반려 사례와 담당자 판단 근거",
+      "dev": "입력→판정→근거 조항을 포함한 실행 결과",
+      "givet": "정상·위반·경계값 테스트 데이터 구성",
+      "status": "not_received",
+      "owner": "",
+      "due": "",
+      "note": ""
+    },
+    {
+      "id": "D-09",
+      "category": "공통",
+      "title": "기초자료 인수·DB 등록 현황",
+      "desc": "원본 수령과 시스템 적재를 별도로 추적",
+      "kan": "자료별 보유·제공 여부, 전달 일자·파일 목록",
+      "dev": "반영 건수, 정제·제외 건수, 실제 DB 내보내기",
+      "givet": "원천파일 ↔ DB 레코드 연결·누락 확인",
+      "status": "not_received",
+      "owner": "",
+      "due": "",
+      "note": ""
+    }
+  ],
+  "modules": [
+    {
+      "id": "M-01",
+      "code": "ENGINE 01 · MUST",
+      "title": "근거기반 RAG 제안서 엔진",
+      "desc": "문서에서 근거를 검색하고, 출처가 달린 제안서 초안을 생성하는 기능",
+      "input": "발주·사업 정보, 문서 KB, 제안서 섹션 요청",
+      "output": "출처(문서ID·페이지·청크ID)가 연결된 제안서 초안 및 검수 기록",
+      "criteria": "근거 포함률 100%, Recall@5 90% 이상(최종 시험조건 재확인)",
+      "checks": [
+        "문서 파싱·청킹·인덱싱 사례",
+        "검색 결과 Top-5 및 출처 원문 비교",
+        "근거 없는 문장 차단/경고 테스트",
+        "제안서 초안과 검수·수정 이력"
+      ],
+      "checked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "status": "unverified",
+      "owner": "",
+      "memo": ""
+    },
+    {
+      "id": "M-02",
+      "code": "ENGINE 02 · MUST",
+      "title": "품목·산식 / BoQ 자동산출",
+      "desc": "치수·재질·수량과 기준 단가로 물량·금액을 확정적으로 산출하는 기능",
+      "input": "사인 유형·치수·재질·수량, 산식 및 단가 버전",
+      "output": "품목별 물량·단가·금액, 산출 근거·계산 로그",
+      "criteria": "전문가 산출 대비 오차 ±5% 이내, 재현성 95% 이상",
+      "checks": [
+        "품목·단가·산식 DB 실제 등록 레코드",
+        "동일 입력에 대한 산출 내역서 예시",
+        "계산식·단가 버전 추적 로그",
+        "정상·예외·반복 입력 시험결과"
+      ],
+      "checked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "status": "unverified",
+      "owner": "",
+      "memo": ""
+    },
+    {
+      "id": "M-03",
+      "code": "ENGINE 03 · MUST",
+      "title": "Rule-set 규정 자동점검",
+      "desc": "지자체별 정형 규칙에 따라 통과·주의·위반 등을 판단하는 기능",
+      "input": "설계 정보, 적용 지역·규정 버전, 정형 룰셋",
+      "output": "항목별 판정 결과, 위반 사유, 해당 근거 조항",
+      "criteria": "정형 규칙 60개 이상 구축 및 기능 검증(최종 시험조건 재확인)",
+      "checks": [
+        "규정 60개 목록 및 조항-룰 매핑표",
+        "각 규칙의 변수·판정 조건·예외 정의",
+        "통과·위반·경계값별 예상/실제 판정",
+        "법령 개정·규칙 버전 관리 방법"
+      ],
+      "checked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "status": "unverified",
+      "owner": "",
+      "memo": ""
+    },
+    {
+      "id": "M-04",
+      "code": "OUTPUT 04 · MUST",
+      "title": "제안서 템플릿·문서 출력",
+      "desc": "검수된 제안서·내역을 규격에 맞춰 출력하고 변환 정합성을 검증하는 기능",
+      "input": "제안서 본문, 도면·이미지, 내역표, 발주처 양식",
+      "output": "PDF·DOCX 및 HWP 호환 출력물, 변환 검증 기록",
+      "criteria": "문서 변환 정합성 95% 이상(협약계획서 기준)",
+      "checks": [
+        "그룹칸 제공 실제 제안서와 템플릿 매핑",
+        "표·이미지·단락·서식 출력 비교",
+        "PDF·DOCX·HWP 호환 출력 샘플",
+        "변환 오류·재현성 시험 결과"
+      ],
+      "checked": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "status": "unverified",
+      "owner": "",
+      "memo": ""
+    }
+  ],
+  "kpis": [
+    {
+      "id": "K-01",
+      "title": "제안서 근거 포함률",
+      "goal": "100%",
+      "method": "생성 문장·단락별 출처 태그 확인. 근거 미확보 문장 차단 사례 함께 검사",
+      "evidence": "제안서 원문·문서 청크·생성 로그",
+      "status": "not_ready",
+      "result": ""
+    },
+    {
+      "id": "K-02",
+      "title": "RAG 검색 Recall@5",
+      "goal": "90% 이상",
+      "method": "KB 1,000건·대표 질의 100건 등의 시험조건 및 정답 청크를 사전 확정해 Top-5 포함률 계산",
+      "evidence": "문서 KB·정답 청크·검색 로그",
+      "status": "not_ready",
+      "result": ""
+    },
+    {
+      "id": "K-03",
+      "title": "내역 산출 오차율",
+      "goal": "±5% 이내",
+      "method": "실제 사례 입력값과 전문가 수기 산출 결과를 1:1 비교, 오차율 기록",
+      "evidence": "확정 내역서·산식·단가 버전",
+      "status": "not_ready",
+      "result": ""
+    },
+    {
+      "id": "K-04",
+      "title": "규정 자동점검 규칙 수",
+      "goal": "60개 이상",
+      "method": "정형 룰 목록·근거 조항·테스트 입력으로 각 규칙의 정상 동작 여부 확인",
+      "evidence": "룰셋 표·조항·판정 로그",
+      "status": "not_ready",
+      "result": ""
+    },
+    {
+      "id": "K-05",
+      "title": "문서 변환 정합성",
+      "goal": "95% 이상",
+      "method": "원본 문서와 변환 결과의 텍스트·표·이미지·스타일 체크포인트 비교",
+      "evidence": "출력 원본·PDF/DOCX/HWP 샘플",
+      "status": "not_ready",
+      "result": ""
+    },
+    {
+      "id": "K-06",
+      "title": "시스템 재현성",
+      "goal": "95% 이상",
+      "method": "동일 입력·동일 기준 버전 조건 반복 실행하여 결과 일치율 검증",
+      "evidence": "테스트셋·버전·반복 실행 로그",
+      "status": "not_ready",
+      "result": ""
+    },
+    {
+      "id": "K-07",
+      "title": "업무시간 절감률",
+      "goal": "30~40%",
+      "method": "동일 업무 범위의 기존 수행시간과 시스템 활용 수행시간을 비교",
+      "evidence": "파일럿 수행 기록·작업자 측정표",
+      "status": "not_ready",
+      "result": ""
+    }
+  ],
+  "actions": [
+    {
+      "id": "A-01",
+      "task": "원천 산식·단가·규정자료의 보유·제공 현황 공유",
+      "owner": "그룹칸",
+      "due": "",
+      "status": "planned",
+      "note": ""
+    },
+    {
+      "id": "A-02",
+      "task": "RAG·BoQ·규정 엔진의 개발 상태 및 실행 결과 공유",
+      "owner": "개발팀",
+      "due": "",
+      "status": "planned",
+      "note": ""
+    },
+    {
+      "id": "A-03",
+      "task": "규정 룰셋 정의·검증 항목과 담당 범위 협의",
+      "owner": "GIVET·그룹칸",
+      "due": "",
+      "status": "planned",
+      "note": ""
+    },
+    {
+      "id": "A-04",
+      "task": "협약 KPI 시험방법·공인시험기관 인정범위 확인",
+      "owner": "GIVET",
+      "due": "",
+      "status": "planned",
+      "note": ""
+    },
+    {
+      "id": "A-05",
+      "task": "제안서 원본 서식·문서 출력 기준 협의",
+      "owner": "그룹칸·GIVET",
+      "due": "",
+      "status": "planned",
+      "note": ""
+    },
+    {
+      "id": "A-06",
+      "task": "파일럿 대상·시험 계정·검증 로그 확보 협의",
+      "owner": "3자 협의",
+      "due": "",
+      "status": "planned",
+      "note": ""
+    }
+  ]
+}
