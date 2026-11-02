@@ -1,0 +1,585 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>시그넘 KSS - 규정 자동점검 UI Prototype</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --panel:#ffffff;
+      --text:#172033;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --brand:#2f5bea;
+      --brand-2:#eef3ff;
+      --pass:#166534;
+      --pass-bg:#ecfdf3;
+      --fail:#b42318;
+      --fail-bg:#fff0ee;
+      --review:#9a6700;
+      --review-bg:#fff8db;
+      --unknown:#475467;
+      --unknown-bg:#f2f4f7;
+      --shadow:0 8px 28px rgba(16,24,40,.08);
+      --radius:18px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: Pretendard, "Noto Sans KR", Arial, sans-serif;
+      background:linear-gradient(180deg,#f8faff 0%,var(--bg) 40%,#f7f8fb 100%);
+      color:var(--text);
+    }
+    header{
+      position:sticky;top:0;z-index:20;
+      background:rgba(255,255,255,.94);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+    .topbar{
+      max-width:1320px;margin:auto;padding:16px 24px;
+      display:flex;align-items:center;justify-content:space-between;gap:20px;
+    }
+    .brand{
+      display:flex;align-items:center;gap:12px;font-weight:800;font-size:20px;
+    }
+    .logo{
+      width:38px;height:38px;border-radius:12px;
+      display:grid;place-items:center;
+      background:linear-gradient(135deg,#244ddb,#5482ff);
+      color:#fff;font-weight:900;
+      box-shadow:0 6px 18px rgba(47,91,234,.25);
+    }
+    .badge{
+      color:#3255c8;background:#eef3ff;border:1px solid #d6e0ff;
+      padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700;
+    }
+    .wrap{max-width:1320px;margin:0 auto;padding:28px 24px 60px}
+    .hero{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:24px;
+      padding:26px 28px;
+      box-shadow:var(--shadow);
+      display:grid;
+      grid-template-columns:1.5fr 1fr;
+      gap:24px;
+      margin-bottom:22px;
+    }
+    .hero h1{margin:0 0 8px;font-size:28px;line-height:1.25}
+    .hero p{margin:0;color:var(--muted);line-height:1.7}
+    .flow{
+      display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;
+    }
+    .flow span{
+      padding:9px 11px;border-radius:12px;background:#f8fafc;border:1px solid var(--line);
+      font-size:12px;font-weight:700;color:#475467
+    }
+    .flow i{font-style:normal;color:#98a2b3}
+    .layout{
+      display:grid;grid-template-columns:minmax(0,1.1fr) minmax(420px,.9fr);gap:22px;
+      align-items:start;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card-head{
+      padding:18px 20px;border-bottom:1px solid var(--line);
+      display:flex;align-items:center;justify-content:space-between;gap:16px;
+    }
+    .card-head h2{font-size:18px;margin:0}
+    .card-head p{font-size:12px;color:var(--muted);margin:4px 0 0}
+    .card-body{padding:20px}
+    .section{
+      margin-bottom:24px;
+      padding-bottom:22px;
+      border-bottom:1px dashed #e6e8ec;
+    }
+    .section:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+    .section-title{
+      display:flex;align-items:center;gap:10px;
+      font-weight:800;margin-bottom:14px;
+    }
+    .num{
+      width:28px;height:28px;border-radius:9px;display:grid;place-items:center;
+      background:var(--brand-2);color:var(--brand);font-size:13px;font-weight:900;
+    }
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+    label{display:block;font-size:12px;font-weight:700;color:#344054;margin-bottom:7px}
+    select,input{
+      width:100%;height:44px;border:1px solid #d0d5dd;border-radius:11px;
+      padding:0 12px;background:#fff;color:#111827;font-size:14px;outline:none;
+      transition:.16s border,.16s box-shadow;
+    }
+    select:focus,input:focus{
+      border-color:#7594ff;box-shadow:0 0 0 3px rgba(47,91,234,.10)
+    }
+    .unit{
+      display:flex;align-items:center;gap:8px
+    }
+    .unit b{
+      min-width:34px;color:#667085;font-size:13px;font-weight:700
+    }
+    .hint{
+      margin-top:7px;font-size:11px;color:#98a2b3;line-height:1.5
+    }
+    .choice-row{
+      display:flex;gap:8px;flex-wrap:wrap
+    }
+    .chip input{display:none}
+    .chip span{
+      display:inline-block;padding:10px 13px;border-radius:11px;
+      border:1px solid #d0d5dd;color:#475467;background:#fff;
+      font-size:13px;font-weight:700;cursor:pointer;
+    }
+    .chip input:checked + span{
+      border-color:#7694ff;background:#eef3ff;color:#2148c0;
+      box-shadow:0 0 0 2px rgba(47,91,234,.08)
+    }
+    .actions{
+      display:flex;gap:10px;margin-top:20px
+    }
+    button{
+      border:0;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:800;cursor:pointer
+    }
+    .primary{background:var(--brand);color:#fff;flex:1}
+    .secondary{background:#f2f4f7;color:#344054}
+    .primary:hover{filter:brightness(.97)}
+    .sticky{position:sticky;top:88px}
+    .summary{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-bottom:16px
+    }
+    .stat{
+      padding:13px 10px;border-radius:13px;border:1px solid var(--line);background:#fbfcfe;text-align:center
+    }
+    .stat strong{display:block;font-size:20px;margin-top:2px}
+    .stat small{color:var(--muted);font-size:11px}
+    .rule-list{display:flex;flex-direction:column;gap:10px}
+    .rule{
+      border:1px solid var(--line);border-radius:14px;padding:14px;background:#fff
+    }
+    .rule-top{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+    .rule-id{font-size:12px;color:#667085;font-weight:900;letter-spacing:.2px}
+    .rule-title{font-size:14px;font-weight:800;margin-top:3px}
+    .rule-desc{font-size:12px;color:#667085;line-height:1.55;margin-top:7px}
+    .pill{
+      white-space:nowrap;padding:6px 9px;border-radius:999px;font-size:11px;font-weight:900
+    }
+    .PASS{background:var(--pass-bg);color:var(--pass)}
+    .FAIL{background:var(--fail-bg);color:var(--fail)}
+    .REVIEW{background:var(--review-bg);color:var(--review)}
+    .UNKNOWN{background:var(--unknown-bg);color:var(--unknown)}
+    .NA{background:#f2f4f7;color:#98a2b3}
+    .raw{
+      background:#101828;color:#d0d5dd;border-radius:14px;padding:15px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size:12px;line-height:1.75;overflow:auto;
+    }
+    .raw .k{color:#8ab4ff}
+    .raw .v{color:#98e3b8}
+    .note{
+      padding:14px 15px;border-radius:13px;background:#f8f9ff;border:1px solid #e2e7ff;
+      color:#475467;font-size:12px;line-height:1.65;margin-top:16px
+    }
+    .empty{
+      padding:28px 18px;text-align:center;color:#98a2b3;font-size:13px;
+      border:1px dashed #d0d5dd;border-radius:14px;background:#fafafa
+    }
+    .mini-title{font-size:13px;font-weight:800;margin:18px 0 10px}
+    @media(max-width:980px){
+      .hero{grid-template-columns:1fr}
+      .flow{justify-content:flex-start}
+      .layout{grid-template-columns:1fr}
+      .sticky{position:static}
+    }
+    @media(max-width:640px){
+      .grid2,.grid3{grid-template-columns:1fr}
+      .summary{grid-template-columns:repeat(2,1fr)}
+      .wrap,.topbar{padding-left:14px;padding-right:14px}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <div class="logo">K</div>
+      <div>시그넘 KSS</div>
+      <div class="badge">UI Prototype</div>
+    </div>
+    <div style="font-size:12px;color:#667085">1단계 MVP · 규정 자동점검</div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <h1>신규 사인물 규정 검토</h1>
+      <p>지역·광고물 유형·규격 등 구조화된 입력값을 바탕으로 적용 가능한 Rule을 선별하고 자동 점검합니다.</p>
+    </div>
+    <div class="flow">
+      <span>① 프로젝트 입력</span><i>→</i>
+      <span>② 표준화</span><i>→</i>
+      <span>③ Rule 선별</span><i>→</i>
+      <span>④ 판정</span>
+    </div>
+  </section>
+
+  <div class="layout">
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h2>사인물 정보 입력</h2>
+          <p>Rule Engine에서 직접 사용하는 값은 선택형·숫자형 입력을 권장합니다.</p>
+        </div>
+      </div>
+
+      <div class="card-body">
+        <div class="section">
+          <div class="section-title"><span class="num">1</span> 설치 지역</div>
+          <div class="grid2">
+            <div>
+              <label>광역자치단체</label>
+              <select id="region">
+                <option value="DAEGU">대구광역시</option>
+                <option value="GYEONGBUK">경상북도</option>
+                <option value="SEOUL">서울특별시 (예시: Rule 미구축)</option>
+              </select>
+            </div>
+            <div>
+              <label>시·군·구</label>
+              <select id="district">
+                <option value="SUSEONG">수성구</option>
+                <option value="DALSEO">달서구</option>
+                <option value="GYEONGSAN">경산시</option>
+                <option value="OTHER">기타</option>
+              </select>
+            </div>
+          </div>
+          <div class="hint">실서비스에서는 주소검색 → 행정구역 자동판별 방식이 더 적합합니다.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><span class="num">2</span> 광고물 유형</div>
+          <div>
+            <label>광고물 유형 선택</label>
+            <select id="signType">
+              <option value="PROJECTING">돌출간판</option>
+              <option value="WALL">벽면 이용 간판</option>
+              <option value="ROOFTOP">옥상간판</option>
+              <option value="POLE">지주 이용 간판</option>
+              <option value="STAND">입간판</option>
+              <option value="BANNER">현수막</option>
+              <option value="UNKNOWN">잘 모르겠음</option>
+            </select>
+          </div>
+          <div class="hint">오타·띄어쓰기 문제를 방지하기 위해 자유입력 대신 표준 선택값을 사용합니다.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><span class="num">3</span> 건물·설치 조건</div>
+          <div class="grid3">
+            <div>
+              <label>건물 층수</label>
+              <input id="buildingFloors" type="number" min="1" value="5">
+            </div>
+            <div>
+              <label>설치층</label>
+              <input id="installFloor" type="number" min="1" value="1">
+            </div>
+            <div>
+              <label>수량</label>
+              <input id="count" type="number" min="1" value="1">
+            </div>
+          </div>
+          <div style="margin-top:14px">
+            <label>보도 유무</label>
+            <div class="choice-row">
+              <label class="chip"><input type="radio" name="sidewalk" value="true" checked><span>보도 있음</span></label>
+              <label class="chip"><input type="radio" name="sidewalk" value="false"><span>보도 없음</span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><span class="num">4</span> 규격 정보</div>
+          <div class="grid2">
+            <div>
+              <label>가로 길이</label>
+              <div class="unit"><input id="width" type="number" step="0.01" min="0" value="0.80"><b>m</b></div>
+            </div>
+            <div>
+              <label>세로 길이</label>
+              <div class="unit"><input id="height" type="number" step="0.01" min="0" value="1.20"><b>m</b></div>
+            </div>
+            <div>
+              <label>벽면으로부터 돌출폭</label>
+              <div class="unit"><input id="projection" type="number" step="0.01" min="0" value="1.35"><b>m</b></div>
+            </div>
+            <div>
+              <label>간판 두께</label>
+              <div class="unit"><input id="thickness" type="number" step="0.01" min="0" value="0.40"><b>m</b></div>
+            </div>
+            <div>
+              <label>간판 하단 높이</label>
+              <div class="unit"><input id="bottomHeight" type="number" step="0.01" min="0" value="2.70"><b>m</b></div>
+            </div>
+            <div>
+              <label>간판 상단 높이</label>
+              <div class="unit"><input id="topHeight" type="number" step="0.01" min="0" placeholder="예: 5.2"><b>m</b></div>
+            </div>
+          </div>
+          <div class="hint">숫자만 입력받고 단위는 시스템에서 고정하여 Rule 비교값을 일관되게 유지합니다.</div>
+        </div>
+
+        <div class="section">
+          <div class="section-title"><span class="num">5</span> 조명·표시 방식</div>
+          <div class="grid2">
+            <div>
+              <label>조명</label>
+              <select id="lighting">
+                <option value="LED">LED</option>
+                <option value="NEON">네온</option>
+                <option value="NONE">비조명</option>
+              </select>
+            </div>
+            <div>
+              <label>디지털 광고 여부</label>
+              <select id="digital">
+                <option value="false">아니오</option>
+                <option value="true">예</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="secondary" onclick="resetDemo()">예시값 초기화</button>
+          <button class="primary" onclick="evaluateRules()">규정 자동점검 실행</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="sticky">
+      <section class="card">
+        <div class="card-head">
+          <div>
+            <h2>Rule Engine 결과</h2>
+            <p>입력값에 맞는 Rule만 선별하여 표시합니다.</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="summary">
+            <div class="stat"><small>적용 Rule</small><strong id="statApplied">0</strong></div>
+            <div class="stat"><small>PASS</small><strong id="statPass">0</strong></div>
+            <div class="stat"><small>FAIL</small><strong id="statFail">0</strong></div>
+            <div class="stat"><small>REVIEW</small><strong id="statReview">0</strong></div>
+          </div>
+
+          <div id="results" class="rule-list">
+            <div class="empty">왼쪽 정보를 확인한 뒤<br><b>규정 자동점검 실행</b>을 눌러주세요.</div>
+          </div>
+
+          <div class="mini-title">표준화된 내부 데이터</div>
+          <div id="raw" class="raw">
+            <span class="k">jurisdiction</span>: <span class="v">-</span><br>
+            <span class="k">sign_type</span>: <span class="v">-</span><br>
+            <span class="k">projection_m</span>: <span class="v">-</span>
+          </div>
+
+          <div class="note">
+            <b>중요:</b> 이 화면은 기능 구조를 설명하기 위한 프로토타입입니다. 표시된 기준값은 현재 논의 중인 60개 Rule 초안의 일부를 예시로 사용했으며, 실제 서비스 반영 전 법령·조례·예외조건 검증이 필요합니다.
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</main>
+
+<script>
+const q = id => document.getElementById(id);
+const num = id => {
+  const v = q(id).value.trim();
+  return v === "" ? null : Number(v);
+};
+
+function getData(){
+  const sidewalkEl = document.querySelector('input[name="sidewalk"]:checked');
+  return {
+    jurisdiction: q("region").value,
+    district: q("district").value,
+    sign_type: q("signType").value,
+    building_floors: num("buildingFloors"),
+    install_floor: num("installFloor"),
+    count: num("count"),
+    width_m: num("width"),
+    height_m: num("height"),
+    projection_m: num("projection"),
+    thickness_m: num("thickness"),
+    bottom_height_m: num("bottomHeight"),
+    top_height_m: num("topHeight"),
+    sidewalk: sidewalkEl ? sidewalkEl.value === "true" : null,
+    lighting: q("lighting").value,
+    digital: q("digital").value === "true"
+  }
+}
+
+function addRule(arr, id, title, status, desc){
+  arr.push({id,title,status,desc});
+}
+
+function evaluateRules(){
+  const d = getData();
+  const r = [];
+
+  // TYPE: 분류 성공 여부
+  if(d.sign_type !== "UNKNOWN"){
+    const typeName = {
+      PROJECTING:"돌출간판", WALL:"벽면 이용 간판", ROOFTOP:"옥상간판",
+      POLE:"지주 이용 간판", STAND:"입간판", BANNER:"현수막"
+    }[d.sign_type];
+    addRule(r, "TYPE", "광고물 유형 분류", "PASS", `선택 입력값을 기준으로 '${typeName}' 유형으로 표준화되었습니다.`);
+  } else {
+    addRule(r, "TYPE", "광고물 유형 분류", "UNKNOWN", "광고물 유형을 확정할 추가 질문 또는 사진 분석이 필요합니다.");
+  }
+
+  // 대구 + 돌출간판
+  if(d.jurisdiction === "DAEGU" && d.sign_type === "PROJECTING"){
+    if(d.projection_m == null){
+      addRule(r,"SIZE-004","돌출폭 기준","UNKNOWN","벽면으로부터 돌출폭 입력이 필요합니다.");
+    }else{
+      addRule(r,"SIZE-004","돌출폭 기준", d.projection_m > 1.2 ? "FAIL":"PASS",
+        `입력 ${d.projection_m}m / 초안 기준 1.2m. ${d.projection_m > 1.2 ? "기준 초과로 위반 조건이 성립합니다.":"위반 조건이 성립하지 않습니다."}`);
+    }
+
+    if(d.thickness_m == null){
+      addRule(r,"SIZE-005","간판 두께 기준","UNKNOWN","간판 두께 입력이 필요합니다.");
+    }else{
+      addRule(r,"SIZE-005","간판 두께 기준", d.thickness_m > 0.5 ? "FAIL":"PASS",
+        `입력 ${d.thickness_m}m / 초안 기준 0.5m.`);
+    }
+
+    if(d.bottom_height_m == null || d.sidewalk == null){
+      addRule(r,"DIM-001/002","하단 높이 기준","UNKNOWN","보도 유무와 하단 높이 입력이 필요합니다.");
+    } else if(d.sidewalk){
+      addRule(r,"DIM-001","보도가 있는 경우 하단 높이", d.bottom_height_m < 3 ? "FAIL":"PASS",
+        `보도 있음 / 입력 ${d.bottom_height_m}m / 초안 기준 3.0m.`);
+    } else {
+      addRule(r,"DIM-002","보도가 없는 경우 하단 높이", d.bottom_height_m < 4 ? "FAIL":"PASS",
+        `보도 없음 / 입력 ${d.bottom_height_m}m / 초안 기준 4.0m.`);
+    }
+
+    if(d.top_height_m == null){
+      addRule(r,"SAFE-003","돌출간판 안전점검 대상 검토","UNKNOWN","상단 높이 및 광고면 면적 등 추가 정보가 필요합니다.");
+    }else{
+      const faceArea = (d.width_m ?? 0) * (d.height_m ?? 0);
+      const hit = d.top_height_m >= 5 && faceArea >= 1;
+      addRule(r,"SAFE-003","돌출간판 안전점검 대상 검토", hit ? "REVIEW":"PASS",
+        `상단높이 ${d.top_height_m}m / 광고면 약 ${faceArea.toFixed(2)}㎡. ${hit ? "안전점검 대상 여부 확인이 필요합니다.":"현재 입력 기준으로 해당 트리거가 성립하지 않습니다."}`);
+    }
+  }
+
+  // 대구 + 벽면
+  if(d.jurisdiction === "DAEGU" && d.sign_type === "WALL"){
+    if(d.count != null){
+      addRule(r,"QTY-003","벽면 이용 간판 수량 제한", d.count > 1 ? "FAIL":"PASS",
+        `입력 수량 ${d.count}개 / 초안 기준 업소당 1개.`);
+    }
+    if(d.install_floor != null){
+      if(d.install_floor > 5){
+        addRule(r,"POS-001","벽면간판 설치층", "FAIL", `설치층 ${d.install_floor}층 / 초안 기준 5층 초과.`);
+      } else {
+        addRule(r,"POS-001","벽면간판 설치층", "PASS", `설치층 ${d.install_floor}층 / 5층 초과 조건에 해당하지 않습니다.`);
+      }
+      if(d.install_floor >= 4){
+        addRule(r,"PERMIT-003","4층 이상 벽면간판 신고 검토", "REVIEW", "허가대상 제외 여부 및 신고요건 추가 확인이 필요합니다.");
+      }
+    }
+  }
+
+  // 대구 + 옥상
+  if(d.jurisdiction === "DAEGU" && d.sign_type === "ROOFTOP"){
+    addRule(r,"PERMIT-004","옥상간판 허가 검토","REVIEW","옥상간판은 허가대상 여부 및 예외조건 확인이 필요합니다.");
+    if(d.building_floors != null && d.building_floors < 5){
+      addRule(r,"POS-003","옥상간판 건물 층수","FAIL",`건물 ${d.building_floors}층 / 초안 기준 5층 미만 조건에 해당합니다.`);
+    }
+    if(d.building_floors != null && d.building_floors > 15){
+      addRule(r,"POS-004","옥상간판 상한 층수","FAIL",`건물 ${d.building_floors}층 / 초안 기준 15층 초과 조건에 해당합니다.`);
+    }
+  }
+
+  // 경북 총수량 예시
+  if(d.jurisdiction === "GYEONGBUK" && d.count != null){
+    addRule(r,"QTY-005/006","경북 업소당 간판 수량","REVIEW",
+      "용도지역(상업·공업·준주거 / 기타) 정보가 추가로 필요합니다. 현재 UI에는 용도지역 입력을 생략했습니다.");
+  }
+
+  renderResults(r,d);
+}
+
+function renderResults(r,d){
+  const applied = r.length;
+  const pass = r.filter(x=>x.status==="PASS").length;
+  const fail = r.filter(x=>x.status==="FAIL").length;
+  const review = r.filter(x=>x.status==="REVIEW").length;
+  q("statApplied").textContent = applied;
+  q("statPass").textContent = pass;
+  q("statFail").textContent = fail;
+  q("statReview").textContent = review;
+
+  q("results").innerHTML = r.map(x=>`
+    <div class="rule">
+      <div class="rule-top">
+        <div>
+          <div class="rule-id">${x.id}</div>
+          <div class="rule-title">${x.title}</div>
+        </div>
+        <span class="pill ${x.status}">${x.status}</span>
+      </div>
+      <div class="rule-desc">${x.desc}</div>
+    </div>
+  `).join("");
+
+  q("raw").innerHTML = `
+    <span class="k">jurisdiction</span>: <span class="v">${d.jurisdiction}</span><br>
+    <span class="k">district</span>: <span class="v">${d.district}</span><br>
+    <span class="k">sign_type</span>: <span class="v">${d.sign_type}</span><br>
+    <span class="k">projection_m</span>: <span class="v">${d.projection_m ?? "null"}</span><br>
+    <span class="k">thickness_m</span>: <span class="v">${d.thickness_m ?? "null"}</span><br>
+    <span class="k">bottom_height_m</span>: <span class="v">${d.bottom_height_m ?? "null"}</span><br>
+    <span class="k">sidewalk</span>: <span class="v">${d.sidewalk}</span>
+  `;
+}
+
+function resetDemo(){
+  q("region").value="DAEGU";
+  q("district").value="SUSEONG";
+  q("signType").value="PROJECTING";
+  q("buildingFloors").value="5";
+  q("installFloor").value="1";
+  q("count").value="1";
+  q("width").value="0.80";
+  q("height").value="1.20";
+  q("projection").value="1.35";
+  q("thickness").value="0.40";
+  q("bottomHeight").value="2.70";
+  q("topHeight").value="";
+  q("lighting").value="LED";
+  q("digital").value="false";
+  document.querySelector('input[name="sidewalk"][value="true"]').checked=true;
+  q("results").innerHTML='<div class="empty">왼쪽 정보를 확인한 뒤<br><b>규정 자동점검 실행</b>을 눌러주세요.</div>';
+  q("statApplied").textContent="0";
+  q("statPass").textContent="0";
+  q("statFail").textContent="0";
+  q("statReview").textContent="0";
+  q("raw").innerHTML='<span class="k">jurisdiction</span>: <span class="v">-</span><br><span class="k">sign_type</span>: <span class="v">-</span><br><span class="k">projection_m</span>: <span class="v">-</span>';
+}
+</script>
+</body>
+</html>
